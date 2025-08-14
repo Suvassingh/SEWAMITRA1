@@ -17,6 +17,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:sewamitra/mapSelectionScreen.dart';
 import 'package:sewamitra/notificationService.dart';
+import 'package:sewamitra/provider/provider_notifications_screen.dart';
 import 'package:sewamitra/user/userHomeScreen.dart';
 
 // ... (Keep your existing Service, ServiceProviderModel, and ServiceDataProvider classes)
@@ -127,6 +128,14 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
               leading: const Icon(Icons.notifications, color: Colors.black),
               title: const Text('Notifications', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               onTap: () => Navigator.pushNamed(context, '/notifications'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.notifications, color: Colors.black),
+              title: const Text('Notifications', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProviderNotificationsScreen()),
+              ),
             ),
             ListTile(
               leading: const Icon(Icons.contact_emergency, color: Colors.black),

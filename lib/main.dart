@@ -16,10 +16,14 @@ import 'package:sewamitra/user/cart.dart';
 import 'package:sewamitra/user/profile.dart';
 import 'package:sewamitra/user/userHomeScreen.dart';
 
+import 'notificationService.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  // Initialize notification service
+  NotificationService.initialize();
   runApp(
     ChangeNotifierProvider(
       create: (context) => ServiceDataProvider(), // Updated to ServiceDataProvider
