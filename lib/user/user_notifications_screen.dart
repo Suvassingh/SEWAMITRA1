@@ -1,91 +1,3 @@
-// import 'package:flutter/material.dart';
-// import 'package:firebase_database/firebase_database.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:provider/provider.dart';
-// import 'package:sewamitra/notificationService.dart';
-//
-// class UserNotificationsScreen extends StatefulWidget {
-//   const UserNotificationsScreen({super.key});
-//
-//   @override
-//   State<UserNotificationsScreen> createState() =>
-//       _UserNotificationsScreenState();
-// }
-//
-// class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
-//   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref();
-//   final FirebaseAuth _auth = FirebaseAuth.instance;
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final user = _auth.currentUser;
-//     if (user == null) {
-//       return const Scaffold(
-//         body: Center(child: Text('Please login first')),
-//       );
-//     }
-//
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('Notifications'),
-//       ),
-//       body: StreamBuilder<DatabaseEvent>(
-//         stream: NotificationService.getNotificationsStream(user.uid),
-//         builder: (context, snapshot) {
-//           if (snapshot.hasError) {
-//             return Center(child: Text('Error: ${snapshot.error}'));
-//           }
-//
-//           if (snapshot.connectionState == ConnectionState.waiting) {
-//             return const Center(child: CircularProgressIndicator());
-//           }
-//
-//           if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
-//             return const Center(child: Text('No notifications'));
-//           }
-//
-//           final notificationsMap =
-//           snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
-//           final notifications = notificationsMap.entries.toList();
-//
-//           notifications.sort((a, b) {
-//             final aTime = a.value['timestamp'] ?? 0;
-//             final bTime = b.value['timestamp'] ?? 0;
-//             return bTime.compareTo(aTime); // Newest first
-//           });
-//
-//           return ListView.builder(
-//             itemCount: notifications.length,
-//             itemBuilder: (context, index) {
-//               final notification = notifications[index];
-//               final data = notification.value as Map<dynamic, dynamic>;
-//               final isRead = data['read'] ?? false;
-//
-//               return Card(
-//                 color: isRead ? Colors.grey[200] : Colors.blue[50],
-//                 margin: const EdgeInsets.all(8.0),
-//                 child: ListTile(
-//                   title: Text(data['title']),
-//                   subtitle: Text(data['body']),
-//                   trailing: data['status'] == 'accepted'
-//                       ? const Icon(Icons.check_circle, color: Colors.green)
-//                       : data['status'] == 'rejected'
-//                       ? const Icon(Icons.cancel, color: Colors.red)
-//                       : const Icon(Icons.access_time, color: Colors.orange),
-//                   onTap: () {
-//                     NotificationService.markAsRead(
-//                         user.uid, notification.key);
-//                   },
-//                 ),
-//               );
-//             },
-//           );
-//         },
-//       ),
-//     );
-//   }
-// }
-
 
 
 
@@ -126,27 +38,19 @@ class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifications'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.mark_email_read),
-            onPressed: () => NotificationService.markAllAsRead(),
+        title: const Text('Notifications',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,),),
+        centerTitle: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(15),
           ),
-          StreamBuilder<int>(
-            stream: NotificationService.unreadCountStream,
-            builder: (context, snapshot) {
-              final count = snapshot.data ?? 0;
-              return Badge(
-                label: Text('$count'),
-                isLabelVisible: count > 0,
-                child: IconButton(
-                  icon: const Icon(Icons.notifications),
-                  onPressed: () {},
-                ),
-              );
-            },
-          ),
-        ],
+        ),
+        backgroundColor: Colors.white38,
+
       ),
       body: StreamBuilder<DatabaseEvent>(
         stream: _dbRef
@@ -224,6 +128,8 @@ class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
       ),
     );
   }
+
+
 
   Widget _getNotificationIcon(String? type) {
     switch (type) {

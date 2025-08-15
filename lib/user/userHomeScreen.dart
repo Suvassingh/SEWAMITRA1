@@ -1755,7 +1755,7 @@ class ServiceProviderCard extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => BookingScreen(provider: provider),
+                              builder: (context) => BookNowScreen(provider: provider),
                             ),
                           );
                         },
@@ -1859,7 +1859,7 @@ class ProviderDetailScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => BookingScreen(provider: provider),
+                      builder: (context) => BookNowScreen(provider: provider),
                     ),
                   );
                 },
@@ -1904,164 +1904,17 @@ class ProviderDetailScreen extends StatelessWidget {
 // Booking Screen
 
 
-// class BookingScreen extends StatefulWidget {
-//   final ServiceProviderDisplay provider; // Replace with your actual provider model
-//
-//   const BookingScreen({Key? key, required this.provider}) : super(key: key);
-//
-//   @override
-//   _BookingScreenState createState() => _BookingScreenState();
-// }
-//
-// class _BookingScreenState extends State<BookingScreen> {
-//   final _formKey = GlobalKey<FormState>();
-//   DateTime? _selectedDate;
-//   TimeOfDay? _selectedTime;
-//   final TextEditingController _problemController = TextEditingController();
-//
-//   void _pickDate() async {
-//     final DateTime? picked = await showDatePicker(
-//       context: context,
-//       initialDate: _selectedDate ?? DateTime.now(),
-//       firstDate: DateTime.now(),
-//       lastDate: DateTime.now().add(const Duration(days: 365)),
-//     );
-//     if (picked != null) {
-//       setState(() {
-//         _selectedDate = picked;
-//       });
-//     }
-//   }
-//
-//   void _pickTime() async {
-//     final TimeOfDay? picked =
-//     await showTimePicker(context: context, initialTime: TimeOfDay.now());
-//     if (picked != null) {
-//       setState(() {
-//         _selectedTime = picked;
-//       });
-//     }
-//   }
-//
-//   void _submitBooking() async {
-//     if (_formKey.currentState!.validate() &&
-//         _selectedDate != null &&
-//         _selectedTime != null) {
-//       final appointmentTime = DateTime(
-//         _selectedDate!.year,
-//         _selectedDate!.month,
-//         _selectedDate!.day,
-//         _selectedTime!.hour,
-//         _selectedTime!.minute,
-//       );
-//
-//       final userId = FirebaseAuth.instance.currentUser!.uid;
-//       final userLocation =
-//       Provider.of<ServiceDataProvider>(context, listen: false).userLocation!;
-//
-//       // Create appointment data
-//       final appointment = {
-//         'userId': userId,
-//         'providerId': widget.provider.id,
-//         'providerName': widget.provider.name,
-//         'serviceId': widget.provider.serviceId,
-//         'serviceName': widget.provider.serviceName,
-//         'appointmentTime': appointmentTime.millisecondsSinceEpoch,
-//         'problemDescription': _problemController.text,
-//         'location': userLocation.toMap(),
-//         'status': 'pending',
-//         'createdAt': DateTime.now().millisecondsSinceEpoch,
-//         'price': widget.provider.hourlyRate,
-//         'duration': 1,
-//       };
-//
-//       // Save to Firebase
-//       final ref =
-//       FirebaseDatabase.instance.ref().child('appointments').push();
-//       final appointmentId = ref.key!;
-//
-//       await ref.set(appointment);
-//
-//       // Send notification to provider
-//       await NotificationService.sendBookingNotification(
-//         widget.provider.id,
-//         {
-//           ...appointment,
-//           'appointmentId': appointmentId,
-//         },
-//       );
-//
-//       Navigator.pop(context);
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(
-//             content: Text(
-//                 'Booking request sent! Waiting for provider confirmation')),
-//       );
-//     }
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text("Book Appointment"),
-//       ),
-//       body: Padding(
-//         padding: const EdgeInsets.all(16.0),
-//         child: Form(
-//           key: _formKey,
-//           child: ListView(
-//             children: [
-//               ListTile(
-//                 title: Text(_selectedDate == null
-//                     ? "Select Date"
-//                     : "${_selectedDate!.toLocal()}".split(' ')[0]),
-//                 trailing: const Icon(Icons.calendar_today),
-//                 onTap: _pickDate,
-//               ),
-//               ListTile(
-//                 title: Text(_selectedTime == null
-//                     ? "Select Time"
-//                     : _selectedTime!.format(context)),
-//                 trailing: const Icon(Icons.access_time),
-//                 onTap: _pickTime,
-//               ),
-//               TextFormField(
-//                 controller: _problemController,
-//                 maxLines: 4,
-//                 decoration: const InputDecoration(
-//                   labelText: "Describe your problem",
-//                   border: OutlineInputBorder(),
-//                 ),
-//                 validator: (value) => value!.isEmpty
-//                     ? "Please describe the problem"
-//                     : null,
-//               ),
-//               const SizedBox(height: 20),
-//               ElevatedButton(
-//                 onPressed: _submitBooking,
-//                 child: const Text("Book Now"),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
-//
 
-
-class BookingScreen extends StatefulWidget {
+class BookNowScreen extends StatefulWidget {
   final ServiceProviderDisplay provider; // Replace with your actual provider model
 
-  const BookingScreen({Key? key, required this.provider}) : super(key: key);
+  const BookNowScreen({Key? key, required this.provider}) : super(key: key);
 
   @override
-  _BookingScreenState createState() => _BookingScreenState();
+  _BookNowScreenState createState() => _BookNowScreenState();
 }
 
-class _BookingScreenState extends State<BookingScreen> {
+class _BookNowScreenState extends State<BookNowScreen> {
   final _formKey = GlobalKey<FormState>();
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
@@ -2311,14 +2164,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                 Navigator.pushNamed(context, '/profile');
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.wallet,color: Colors.black),
-              title: const Text('Wallet',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/wallet');
-              },
-            ),
+
             ListTile(
               leading: const Icon(Icons.notifications, color: Colors.black),
               title: const Text('Notifications', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
@@ -2330,14 +2176,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                 );
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.notifications,color: Colors.black),
-              title: const Text('Notifications',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/notifications');
-              },
-            ),
+
           ],
         ),
       ),
