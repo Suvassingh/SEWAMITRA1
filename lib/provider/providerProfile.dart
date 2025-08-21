@@ -218,6 +218,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
     }
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           'Provider Profile',

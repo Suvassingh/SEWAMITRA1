@@ -314,6 +314,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           'My Bookings',
@@ -329,7 +330,6 @@ class _BookingsScreenState extends State<BookingsScreen> {
             bottom: Radius.circular(15),
           ),
         ),
-        backgroundColor: Colors.white38,
         iconTheme: const IconThemeData(
           color: Colors.black,
         ),

@@ -123,17 +123,16 @@ class _ContactAdminScreenState extends State<ContactAdminScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
+
+
       appBar: AppBar(
         title: const Text(
           'Contact Admin',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         centerTitle: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
-        ),
-        backgroundColor: Colors.white38,
-        iconTheme: const IconThemeData(color: Colors.black),
+
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -313,12 +312,12 @@ class _ContactAdminScreenState extends State<ContactAdminScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: const [
-                    Icon(Icons.email, size: 18, color: Colors.white),
+                    Icon(Icons.email, size: 18, color: Colors.black),
                     SizedBox(width: 8),
                     Text(
                       'admin@sewamitra.com',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
                       ),
                     ),
                   ],
@@ -333,12 +332,12 @@ class _ContactAdminScreenState extends State<ContactAdminScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: const [
-                    Icon(Icons.phone, size: 18, color: Colors.white),
+                    Icon(Icons.phone, size: 18, color: Colors.black),
                     SizedBox(width: 8),
                     Text(
                       '+977 9811769701',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
                       ),
                     ),
                   ],

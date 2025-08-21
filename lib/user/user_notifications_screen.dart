@@ -26,6 +26,7 @@ class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
     }
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           'Confirmed Appointments',
@@ -41,7 +42,6 @@ class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
             bottom: Radius.circular(15),
           ),
         ),
-        backgroundColor: Colors.white38,
       ),
       body: StreamBuilder<DatabaseEvent>(
         stream: _dbRef

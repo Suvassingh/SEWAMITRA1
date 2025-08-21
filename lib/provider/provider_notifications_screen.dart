@@ -358,6 +358,7 @@ class _ProviderNotificationsScreenState
     }
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           'Booking Requests',
@@ -369,10 +370,7 @@ class _ProviderNotificationsScreenState
           textAlign: TextAlign.center,
         ),
         centerTitle: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
-        ),
-        backgroundColor: Colors.white38,
+
         iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: StreamBuilder<DatabaseEvent>(

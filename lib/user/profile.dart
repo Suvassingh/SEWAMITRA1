@@ -177,6 +177,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('User Profile',style: TextStyle(
             fontSize: 20,
@@ -190,7 +191,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             bottom: Radius.circular(15),
           ),
         ),
-        backgroundColor: Colors.white38,
         iconTheme: const IconThemeData(
           color: Colors.black,
         ),
