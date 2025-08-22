@@ -28,347 +28,6 @@ import 'package:provider/provider.dart';
 
 import '../main.dart';
 
-// class ProviderHomeScreen extends StatefulWidget {
-//   const ProviderHomeScreen({super.key});
-//
-//   @override
-//   State<ProviderHomeScreen> createState() => _ProviderHomeScreenState();
-// }
-//
-// class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
-//   final List<String> carouselImages = const [
-//     'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1470&q=80',
-//     'https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&w=1457&q=80',
-//     'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1474&q=80',
-//   ];
-//
-//
-//   late TextEditingController _searchController;
-//   late List<Service> _filteredServices;
-//   late ServiceDataProvider _serviceProvider;
-//
-//   int _currentIndex = 0; // for bottom nav
-//   String? providerUserName; // 👈 added username state
-//
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     _searchController = TextEditingController();
-//     _filteredServices = [];
-//     _loadProviderUserName();
-//
-//   }
-//   void _loadProviderUserName() async {
-//     String? name = await fetchProviderUserName();
-//     setState(() {
-//       providerUserName = name;
-//     });
-//   }
-//   @override
-//   void didChangeDependencies() {
-//     super.didChangeDependencies();
-//     _serviceProvider = Provider.of<ServiceDataProvider>(context, listen: false);
-//     if (_filteredServices.isEmpty) {
-//       _filteredServices = _serviceProvider.services;
-//     }
-//   }
-//
-//   Future<String?> fetchProviderUserName() async {
-//     try {
-//       // get current logged in user
-//       final uid = FirebaseAuth.instance.currentUser?.uid;
-//
-//       if (uid == null) return null;
-//
-//       // reference to user's node
-//       DatabaseReference ref = FirebaseDatabase.instance.ref("providers/$uid");
-//
-//       // fetch snapshot
-//       DatabaseEvent event = await ref.once();
-//
-//       if (event.snapshot.exists) {
-//         final data = event.snapshot.value as Map<dynamic, dynamic>;
-//         return data["name"]; // get "name" field
-//       } else {
-//         return null;
-//       }
-//     } catch (e) {
-//       print("Error fetching user name: $e");
-//       return null;
-//     }
-//   }
-//
-//
-//   String get _greeting {
-//     final hour = DateTime.now().hour;
-//     if (hour < 12) {
-//       return 'Good Morning';
-//     } else if (hour < 17) {
-//       return 'Good Afternoon';
-//     } else {
-//       return 'Good Evening';
-//     }
-//   }
-//   @override
-//   Widget build(BuildContext context) {
-//     final user = FirebaseAuth.instance.currentUser;
-//
-//     return Scaffold(
-//       backgroundColor: Colors.orange[400],
-//       appBar: AppBar(
-//         title: const Text(
-//           'SewaMitra Provider',
-//           style: TextStyle(
-//               fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-//         ),
-//         shape: const RoundedRectangleBorder(
-//           borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
-//         ),
-//         backgroundColor: Colors.white38,
-//         iconTheme: const IconThemeData(color: Colors.black),
-//         actions: [
-//           IconButton(
-//             icon: const Icon(Icons.notifications, color: Colors.white),
-//             onPressed: () => Navigator.pushNamed(context, '/notifications'),
-//           ),
-//           IconButton(
-//             icon: const Icon(Icons.calendar_month, color: Colors.white),
-//             tooltip: "Booked Appointments",
-//             onPressed: () => Navigator.pushNamed(context, '/appointments'),
-//           ),
-//         ],
-//       ),
-//       body: SingleChildScrollView(
-//         physics: const BouncingScrollPhysics(),
-//         child: Padding(
-//           padding: const EdgeInsets.only(bottom: 16.0),
-//           child: Column(
-//             crossAxisAlignment: CrossAxisAlignment.start,
-//             children: [
-//               // Greeting Card
-//               Container(
-//                 width: double.infinity,
-//                 margin: const EdgeInsets.all(16),
-//                 padding: const EdgeInsets.all(16),
-//                 decoration: BoxDecoration(
-//                   color: Colors.deepOrange[600],
-//                   borderRadius: BorderRadius.circular(15),
-//                   boxShadow: [
-//                     BoxShadow(
-//                       color: Colors.black26,
-//                       blurRadius: 8,
-//                       offset: const Offset(0, 3),
-//                     ),
-//                   ],
-//                 ),
-//                 child: Column(
-//                   crossAxisAlignment: CrossAxisAlignment.start,
-//                   mainAxisSize: MainAxisSize.min,
-//                   children: [
-//                     Text(
-//                       _greeting,
-//                       style: const TextStyle(
-//                         fontSize: 18,
-//                         fontWeight: FontWeight.w500,
-//                         color:Colors.blue,
-//                       ),
-//                     ),
-//                     const SizedBox(height: 8),
-//                     Text(
-//                       providerUserName != null
-//                           ? "Welcome, $providerUserName 👋"
-//                           : "Loading...",
-//                       style: const TextStyle(
-//                         fontSize: 22,
-//                         fontWeight: FontWeight.bold,
-//                         color: Colors.white,
-//                       ),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//
-//               // Carousel
-//               CarouselSlider(
-//                 options: CarouselOptions(
-//                   height: 180,
-//                   autoPlay: true,
-//                   viewportFraction: 0.8,
-//                   enlargeCenterPage: true,
-//                 ),
-//                 items: carouselImages.map((url) {
-//                   return Container(
-//                     margin: const EdgeInsets.all(5),
-//                     decoration: BoxDecoration(
-//                       borderRadius: BorderRadius.circular(12),
-//                       boxShadow: [
-//                         BoxShadow(
-//                           color: Colors.black26,
-//                           blurRadius: 6,
-//                           offset: const Offset(0, 3),
-//                         ),
-//                       ],
-//                     ),
-//                     child: ClipRRect(
-//                       borderRadius: BorderRadius.circular(12),
-//                       child: Image.network(
-//                         url,
-//                         fit: BoxFit.cover,
-//                         width: 1000,
-//                       ),
-//                     ),
-//                   );
-//                 }).toList(),
-//               ),
-//
-//               const SizedBox(height: 15),
-//
-//               // Services Header + Search
-//               Padding(
-//                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
-//                 child: Row(
-//                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                   children: [
-//                     const Text(
-//                       'Services',
-//                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-//                     ),
-//                     Container(
-//                       width: 200,
-//                       height: 38,
-//                       decoration: BoxDecoration(
-//                         color: Colors.white,
-//                         borderRadius: BorderRadius.circular(20),
-//                         boxShadow: const [
-//                           BoxShadow(
-//                               color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
-//                         ],
-//                       ),
-//                       child: TextField(
-//                         controller: _searchController,
-//                         decoration: const InputDecoration(
-//                           hintText: 'Search services...',
-//                           hintStyle: TextStyle(color:Colors.grey ),
-//                           prefixIcon: Icon(Icons.search, size: 18),
-//                           border: InputBorder.none,
-//                           contentPadding: EdgeInsets.symmetric(vertical: 8),
-//                         ),
-//                         onChanged: (value) {
-//                           setState(() {
-//                             _filteredServices = _serviceProvider.searchServices(value);
-//                           });
-//                         },
-//                       ),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//
-//               // Services Grid
-//               Padding(
-//                 padding: const EdgeInsets.symmetric(horizontal: 10),
-//                 child: GridView.builder(
-//                   physics: const NeverScrollableScrollPhysics(),
-//                   shrinkWrap: true,
-//                   itemCount: _filteredServices.length,
-//                   gridDelegate:
-//                   const SliverGridDelegateWithFixedCrossAxisCount(
-//                     crossAxisCount: 4, // 4 per row
-//                     childAspectRatio: 0.8, // smaller card height
-//                     crossAxisSpacing: 12,
-//                     mainAxisSpacing: 12,
-//                   ),
-//                   itemBuilder: (context, index) {
-//                     return ProviderServiceCard(service: _filteredServices[index]);
-//                   },
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//
-//
-//       // Bottom Navigation Bar
-//       bottomNavigationBar: BottomNavigationBar(
-//         currentIndex: _currentIndex,
-//         selectedItemColor: Colors.deepOrange[400],
-//         unselectedItemColor: Colors.grey,
-//         onTap: (index) {
-//           setState(() => _currentIndex = index);
-//           if (index == 0) {
-//             // Home
-//           } else if (index == 1) {
-//             Navigator.pushNamed(context, '/provider_profile');
-//           } else if (index == 2) {
-//             Navigator.pushNamed(context, '/contactadmin');
-//           }
-//         },
-//         items: const [
-//           BottomNavigationBarItem(
-//               icon: Icon(Icons.home), label: "Home"),
-//           BottomNavigationBarItem(
-//               icon: Icon(Icons.person), label: "Profile"),
-//           BottomNavigationBarItem(
-//               icon: Icon(Icons.support_agent), label: "Contact Admin"),
-//         ],
-//       ),
-//     );
-//   }
-// }
-//
-// class ProviderServiceCard extends StatelessWidget {
-//   final Service service;
-//   const ProviderServiceCard({super.key, required this.service});
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Card(
-//       elevation: 3,
-//       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-//       child: InkWell(
-//         borderRadius: BorderRadius.circular(12),
-//         onTap: () => Navigator.push(
-//           context,
-//           MaterialPageRoute(
-//             builder: (context) =>
-//                 ServiceRegistrationScreen(service: service),
-//           ),
-//         ),
-//         child: Padding(
-//           padding: const EdgeInsets.all(10.0),
-//           child: Column(
-//             mainAxisAlignment: MainAxisAlignment.center,
-//             children: [
-//               Image.network(
-//                 service.imageUrl,
-//                 height: 55,
-//                 width: 55,
-//                 fit: BoxFit.cover,
-//               ),
-//               const SizedBox(height: 10),
-//               Text(
-//                 service.name,
-//                 style: const TextStyle(
-//                     fontWeight: FontWeight.bold, fontSize: 14),
-//                 textAlign: TextAlign.center,
-//                 maxLines: 1,
-//                 overflow: TextOverflow.ellipsis,
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
-//
-//
-//
-
-
-
 
 class ProviderHomeScreen extends StatefulWidget {
   const ProviderHomeScreen({super.key});
@@ -477,7 +136,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
         ),
-        backgroundColor: Colors.white38,
+        backgroundColor: Colors.orange[400],
         iconTheme: const IconThemeData(color: Colors.black),
         actions: [
           IconButton(
@@ -495,8 +154,9 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
       body: screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        selectedItemColor: Colors.deepOrange[400],
-        unselectedItemColor: Colors.grey,
+        backgroundColor: Colors.orange[500],
+        selectedItemColor: Colors.deepOrange[200],
+        unselectedItemColor: Colors.white,
         onTap: (index) {
           setState(() => _currentIndex = index);
         },
@@ -651,6 +311,7 @@ class ProviderHomeBody extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 15),
 
             // Services Grid
             Padding(
@@ -676,6 +337,19 @@ class ProviderHomeBody extends StatelessWidget {
     );
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // ----------------- SERVICE CARD -----------------
 class ProviderServiceCard extends StatelessWidget {

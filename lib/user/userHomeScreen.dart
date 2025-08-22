@@ -1,19 +1,20 @@
-// user_home_screen.dart
-import 'dart:convert';
-import 'dart:ffi';
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:sewamitra/user/cart.dart';
 import 'package:sewamitra/user/profile.dart';
 import 'package:sewamitra/user/user_notifications_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../notificationService.dart';
 import '../services/send_notification_service.dart';
@@ -63,6 +64,11 @@ class ServiceOffering {
   final String serviceId;
   final String serviceName;
   final String status;
+  final String relatedWorkImage;
+  final String priceType;
+  final String serviceType;
+
+  final String? priceDescription;
 
   ServiceOffering({
     required this.experience,
@@ -74,6 +80,10 @@ class ServiceOffering {
     required this.serviceId,
     required this.serviceName,
     required this.status,
+    required this.relatedWorkImage,
+    required this.priceType,
+    required this.serviceType,
+    this.priceDescription,
   });
 
   factory ServiceOffering.fromMap(Map<dynamic, dynamic> map) {
@@ -89,6 +99,10 @@ class ServiceOffering {
       serviceId: map['service_id'] ?? '',
       serviceName: map['service_name'] ?? '',
       status: map['status'] ?? 'pending',
+      relatedWorkImage: map['related_work_image'] ?? '',
+      priceType: map['price_type'] ?? 'Per Hour',
+      serviceType: map['service_type'] ?? '',
+      priceDescription: map['price_description'],
     );
   }
 }
@@ -102,7 +116,7 @@ class ProviderModel {
   final String role;
   final String? profileImage;
   final double averageRating;
-
+  final int ratingCount;
   final Map<String, ServiceOffering> services;
   final String uid;
 
@@ -116,6 +130,7 @@ class ProviderModel {
     required this.services,
     required this.uid,
     required this.averageRating,
+    required this.ratingCount,
   });
 
   factory ProviderModel.fromMap(Map<dynamic, dynamic> map) {
@@ -127,18 +142,23 @@ class ProviderModel {
       profileImage: map['profileImage'],
       role: map['role'] ?? '',
       services:
-          (map['services'] as Map<dynamic, dynamic>?)?.map((key, value) {
-            return MapEntry(
-              key.toString(),
-              ServiceOffering.fromMap(Map<String, dynamic>.from(value)),
-            );
-          }) ??
+      (map['services'] as Map<dynamic, dynamic>?)?.map((key, value) {
+        return MapEntry(
+          key.toString(),
+          ServiceOffering.fromMap(Map<String, dynamic>.from(value)),
+        );
+      }) ??
           {},
       uid: map['uid'] ?? '',
       averageRating: map['averageRating']?.toDouble() ?? 0.0,
+      ratingCount: map['ratingCount'] ?? 0,
     );
   }
 }
+
+
+
+
 
 // Service Provider Display Model
 class ServiceProviderDisplay {
@@ -146,7 +166,7 @@ class ServiceProviderDisplay {
   final String name;
   final String email;
   final String phone;
-  final String? profileImage; // Add profile image
+  final String? profileImage;
   final String serviceId;
   final String serviceName;
   final int experience;
@@ -154,6 +174,11 @@ class ServiceProviderDisplay {
   final LocationModel location;
   final double distance;
   final double averageRating;
+  final int ratingCount;
+  final String relatedWorkImage;
+  final String priceType;
+  final String serviceType;
+  final String? priceDescription;
 
   ServiceProviderDisplay({
     required this.id,
@@ -168,6 +193,11 @@ class ServiceProviderDisplay {
     required this.location,
     required this.distance,
     required this.averageRating,
+    required this.ratingCount,
+    required this.relatedWorkImage,
+    required this.priceType,
+    required this.serviceType,
+    this.priceDescription,
   });
 }
 
@@ -178,49 +208,49 @@ class ServiceDataProvider with ChangeNotifier {
       id: '1',
       name: 'Cleaning',
       imageUrl:
-          'https://images.unsplash.com/photo-1581578021426-3c1b74b96b6a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
+      'https://images.unsplash.com/photo-1581578021426-3c1b74b96b6a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
     ),
     Service(
       id: '2',
       name: 'Plumbing',
       imageUrl:
-          'https://images.unsplash.com/photo-1633441380346-615a1a87f7c3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
+      'https://images.unsplash.com/photo-1633441380346-615a1a87f7c3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
     ),
     Service(
       id: '3',
       name: 'Electrical',
       imageUrl:
-          'https://images.unsplash.com/photo-1590959651373-a3db0f38a961?ixlib=rb-4.0.3&auto=format&fit=crop&w=1478&q=80',
+      'https://images.unsplash.com/photo-1590959651373-a3db0f38a961?ixlib=rb-4.0.3&auto=format&fit=crop&w=1478&q=80',
     ),
     Service(
       id: '4',
       name: 'Painting',
       imageUrl:
-          'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
+      'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
     ),
     Service(
       id: '5',
       name: 'Carpenter',
       imageUrl:
-          'https://images.unsplash.com/photo-1601342630314-8427c38bf5e6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1381&q=80',
+      'https://images.unsplash.com/photo-1601342630314-8427c38bf5e6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1381&q=80',
     ),
     Service(
       id: '6',
       name: 'Gardening',
       imageUrl:
-          'https://images.unsplash.com/photo-1591892150210-0be5b3c7d7b1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
+      'https://images.unsplash.com/photo-1591892150210-0be5b3c7d7b1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
     ),
     Service(
       id: '7',
-      name: 'pet',
+      name: 'Pet Care',
       imageUrl:
-      'https://images.unsplash.com/photo-1591892150210-0be5b3c7d7b1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
+      'https://images.unsplash.com/photo-1596272875729-ed2ff7d6d9c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
     ),
     Service(
       id: '8',
-      name: 'house',
+      name: 'Home Services',
       imageUrl:
-      'https://images.unsplash.com/photo-1591892150210-0be5b3c7d7b1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
+      'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
     ),
   ];
 
@@ -271,7 +301,7 @@ class ServiceDataProvider with ChangeNotifier {
     for (final provider in _providers) {
       for (final serviceEntry in provider.services.entries) {
         final service = serviceEntry.value;
-        if (service.serviceId == serviceId) {
+        if (service.serviceId == serviceId && service.status == 'approved') {
           // Calculate distance using geolocator
           double distance =
               Geolocator.distanceBetween(
@@ -280,10 +310,10 @@ class ServiceDataProvider with ChangeNotifier {
                 service.location.latitude,
                 service.location.longitude,
               ) /
-              1000; // Convert to kilometers
+                  1000; // Convert to kilometers
 
           // Only include providers within 20 km
-          if (distance <= 20000.0) {
+          if (distance <= 20.0) {
             providers.add(
               ServiceProviderDisplay(
                 id: provider.uid,
@@ -292,12 +322,17 @@ class ServiceDataProvider with ChangeNotifier {
                 phone: provider.phone,
                 profileImage: provider.profileImage,
                 averageRating: provider.averageRating,
+                ratingCount: provider.ratingCount,
                 serviceId: service.serviceId,
                 serviceName: service.serviceName,
                 experience: service.experience,
                 hourlyRate: service.hourlyCharge,
                 location: service.location,
                 distance: distance,
+                relatedWorkImage: service.relatedWorkImage,
+                priceType: service.priceType,
+                serviceType: service.serviceType,
+                priceDescription: service.priceDescription,
               ),
             );
           }
@@ -312,7 +347,11 @@ class ServiceDataProvider with ChangeNotifier {
   }
 }
 
-// Location Screen
+
+
+
+// Your LocationModel and ServiceDataProvider classes here...
+
 class LocationScreen extends StatefulWidget {
   static const routeName = '/location';
 
@@ -320,97 +359,451 @@ class LocationScreen extends StatefulWidget {
   _LocationScreenState createState() => _LocationScreenState();
 }
 
-class _LocationScreenState extends State<LocationScreen> {
-  final TextEditingController _locationController = TextEditingController();
+class _LocationScreenState extends State<LocationScreen>
+    with SingleTickerProviderStateMixin {
   LocationModel? _selectedLocation;
+  bool _isLoading = false;
+
+  late final AnimationController _animationController;
+  late final Animation<double> _fadeAnimation;
+  late final Animation<Offset> _slideAnimation;
+  final MapController _mapController = MapController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.5),
+      end: const Offset(0, 0),
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOut,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   Future<void> _getCurrentLocation() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
-      final position = await Geolocator.getCurrentPosition();
+      // Request location permissions
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          setState(() {
+            _isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Location permissions are denied'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Location permissions are permanently denied, enable them in app settings'),
+            backgroundColor: Colors.red,
+            action: SnackBarAction(
+              label: 'Open Settings',
+              onPressed: () => Geolocator.openAppSettings(),
+            ),
+          ),
+        );
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      await Future.delayed(const Duration(milliseconds: 800));
+
+      final newLocation = LocationModel(
+        address: "Current Location",
+        latitude: position.latitude,
+        longitude: position.longitude,
+      );
 
       setState(() {
-        _selectedLocation = LocationModel(
-          address: "Current Location",
-          latitude: position.latitude,
-          longitude: position.longitude,
-        );
-        _locationController.text = "Current Location";
+        _selectedLocation = newLocation;
+        _isLoading = false;
+      });
+
+      _animationController.forward();
+
+      // ✅ Move map only after FlutterMap has rendered
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _selectedLocation != null) {
+          _mapController.move(
+            LatLng(newLocation.latitude, newLocation.longitude),
+            15.0,
+          );
+        }
       });
     } catch (e) {
-      ScaffoldMessenger.of(
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not get location: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  // Widget _buildMapPreview() {
+  //   if (_selectedLocation == null) return const SizedBox.shrink();
+  //
+  //   return FadeTransition(
+  //     opacity: _fadeAnimation,
+  //     child: SlideTransition(
+  //       position: _slideAnimation,
+  //       child: Container(
+  //         margin: const EdgeInsets.only(top: 24, bottom: 16),
+  //         height: 250,
+  //         decoration: BoxDecoration(
+  //           color: Colors.white,
+  //           borderRadius: BorderRadius.circular(16),
+  //           boxShadow: [
+  //             BoxShadow(
+  //               color: Colors.black.withOpacity(0.1),
+  //               blurRadius: 10,
+  //               offset: const Offset(0, 4),
+  //             ),
+  //           ],
+  //         ),
+  //         child: ClipRRect(
+  //           borderRadius: BorderRadius.circular(16),
+  //           child: FlutterMap(
+  //             mapController: _mapController,
+  //             options: MapOptions(
+  //               initialCenter: LatLng(
+  //                 _selectedLocation!.latitude,
+  //                 _selectedLocation!.longitude,
+  //               ),
+  //               initialZoom: 15.0,
+  //               interactionOptions: const InteractionOptions(
+  //                 flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+  //               ),
+  //             ),
+  //             children: [
+  //               TileLayer(
+  //                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  //                 userAgentPackageName: 'com.example.app',
+  //                 // Additional tile providers if needed:
+  //                 // urlTemplate: 'https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png',
+  //                 // subdomains: const ['a', 'b', 'c'],
+  //               ),
+  //               MarkerLayer(
+  //                 markers: [
+  //                   Marker(
+  //                     point: LatLng(
+  //                       _selectedLocation!.latitude,
+  //                       _selectedLocation!.longitude,
+  //                     ),
+  //                     width: 40,
+  //                     height: 40,
+  //                     child: const Icon(
+  //                       Icons.location_pin,
+  //                       color: Colors.red,
+  //                       size: 40,
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //                RichAttributionWidget(
+  //                 attributions: [
+  //                   TextSourceAttribution(
+  //                     'OpenStreetMap contributors',
+  //                     onTap: () => launchUrl(
+  //                         Uri.parse('https://openstreetmap.org/copyright')),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  void _saveLocation() {
+    if (_selectedLocation != null) {
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId != null) {
+        FirebaseDatabase.instance
+            .ref()
+            .child('users')
+            .child(userId)
+            .update({'location': _selectedLocation!.toMap()});
+      }
+
+      Provider.of<ServiceDataProvider>(
         context,
-      ).showSnackBar(SnackBar(content: Text('Could not get location: $e')));
+        listen: false,
+      ).setUserLocation(_selectedLocation!);
+
+      Navigator.pop(context, _selectedLocation);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a location first'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: const Text(
           'Set Your Location',
           style: TextStyle(
             fontSize: 20,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
             color: Colors.black,
           ),
-          textAlign: TextAlign.center,
         ),
         centerTitle: true,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
         ),
-        backgroundColor: Colors.white38,
-        iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _locationController,
-              decoration: InputDecoration(
-                labelText: 'Enter Location',
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.location_on, color: Colors.black),
-                  onPressed: _getCurrentLocation,
-                ),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Tap the location icon to detect your current location',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.location_searching,
+                          size: 32,
+                          color: Colors.blue[700],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Get My Location',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'We\'ll use your current location to provide better service',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        SizedBox(
+                          width: 200,
+                          child: ElevatedButton.icon(
+                            onPressed: _getCurrentLocation,
+                            icon: const Icon(Icons.my_location, size: 20),
+                            label: _isLoading
+                                ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white),
+                              ),
+                            )
+                                : const Text('Detect Location'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue[700],
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 16, horizontal: 20),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 0,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16,),
+                  // _buildMapPreview(),
+                  if (_selectedLocation != null) ...[
+                    FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SlideTransition(
+                        position: _slideAnimation,
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.check_circle,
+                                  color: Colors.green, size: 24),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Location Detected',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Lat: ${_selectedLocation!.latitude.toStringAsFixed(6)}, Lng: ${_selectedLocation!.longitude.toStringAsFixed(6)}',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 60,),
+                  Container(
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, -5),
+                        ),
+                      ],
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _saveLocation,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _selectedLocation != null
+                              ? Colors.blue[700]
+                              : Colors.grey[400],
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'Save Location',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+
               ),
-              onChanged: (value) {
-                // You could add address lookup here
-              },
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                if (_selectedLocation != null) {
-                  // Save to user data in Firebase
-                  final userId = FirebaseAuth.instance.currentUser?.uid;
-                  if (userId != null) {
-                    FirebaseDatabase.instance
-                        .ref()
-                        .child('users')
-                        .child(userId)
-                        .update({'location': _selectedLocation!.toMap()});
-                  }
+          ),
 
-                  // Update provider
-                  Provider.of<ServiceDataProvider>(
-                    context,
-                    listen: false,
-                  ).setUserLocation(_selectedLocation!);
-
-                  Navigator.pop(context, _selectedLocation);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please select a location')),
-                  );
-                }
-              },
-              child: const Text('Save Location'),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -434,6 +827,7 @@ class ServiceProvidersScreen extends StatelessWidget {
     ).services.firstWhere((s) => s.id == serviceId);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
           '${service.name} Providers',
@@ -448,41 +842,40 @@ class ServiceProvidersScreen extends StatelessWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
         ),
-        backgroundColor: Colors.white38,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
       body:
-          serviceProviders.isEmpty
-              ? const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.location_off, size: 50, color: Colors.grey),
-                    SizedBox(height: 16),
-                    Text(
-                      'No nearby providers found',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Try again later or search in a different location',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              )
-              : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: serviceProviders.length,
-                itemBuilder: (context, index) {
-                  final provider = serviceProviders[index];
-                  return ServiceProviderCard(provider: provider);
-                },
+      serviceProviders.isEmpty
+          ? const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.location_off, size: 50, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              'No nearby providers found',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Try again later or search in a different location',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+          ],
+        ),
+      )
+          : ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: serviceProviders.length,
+        itemBuilder: (context, index) {
+          final provider = serviceProviders[index];
+          return ServiceProviderCard(provider: provider);
+        },
+      ),
     );
   }
 }
@@ -511,9 +904,9 @@ class ServiceProviderCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Provider Image
+              // Service Image (Related Work Image)
               Container(
                 width: 80,
                 height: 80,
@@ -522,18 +915,17 @@ class ServiceProviderCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child:
-                    provider.profileImage != null &&
-                            provider.profileImage!.isNotEmpty
-                        ? ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.memory(
-                            base64Decode(
-                              provider.profileImage!.split(',').last,
-                            ),
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                        : const Icon(Icons.person, size: 40),
+                provider.relatedWorkImage.isNotEmpty
+                    ? ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.memory(
+                    base64Decode(provider.relatedWorkImage),
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                    const Icon(Icons.image_not_supported, size: 40),
+                  ),
+                )
+                    : const Icon(Icons.work, size: 40, color: Colors.grey),
               ),
               const SizedBox(width: 16),
 
@@ -542,14 +934,53 @@ class ServiceProviderCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Row(
+                      children: [
+                        Text(
+                          provider.name,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+
+
+                        const Spacer(),
+
+
+
+
+                        RatingBarIndicator(
+                          rating: provider.averageRating,
+                          itemBuilder:
+                              (context, index) =>
+                          const Icon(Icons.star, color: Colors.amber),
+                          itemCount: 5,
+                          itemSize: 16,
+                          direction: Axis.horizontal,
+                        ),
+                        Text(
+                          provider.averageRating.toStringAsFixed(1),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          ' (${provider.ratingCount})',
+                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+
+
+                    // Service Name
                     Text(
-                      provider.name,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                      provider.serviceName,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[700],
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
 
                     // Experience
                     Row(
@@ -561,24 +992,10 @@ class ServiceProviderCard extends StatelessWidget {
                           style: TextStyle(color: Colors.grey[600]),
                         ),
                         const Spacer(),
-                        RatingBarIndicator(
-                          rating: provider.averageRating,
-                          itemBuilder:
-                              (context, index) =>
-                                  const Icon(Icons.star, color: Colors.amber),
-                          itemCount: 5,
-                          itemSize: 16,
-                          direction: Axis.horizontal,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          provider.averageRating.toStringAsFixed(1),
-                          // e.g., 4.3
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
+
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
 
                     // Distance and Rate
                     Row(
@@ -594,17 +1011,22 @@ class ServiceProviderCard extends StatelessWidget {
                           style: TextStyle(color: Colors.grey[600]),
                         ),
                         const Spacer(),
-                        const Icon(
-                          Icons.attach_money,
-                          size: 16,
-                          color: Colors.green,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Rs.${provider.hourlyRate}/hr',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
+
                       ],
+                    ),
+                    Row(
+                      children: [
+                      const Icon(
+                        Icons.attach_money,
+                        size: 16,
+                        color: Colors.green,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Rs.${provider.hourlyRate}/${provider.priceType}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                  ],
                     ),
 
                     const SizedBox(height: 12),
@@ -619,7 +1041,7 @@ class ServiceProviderCard extends StatelessWidget {
                             MaterialPageRoute(
                               builder:
                                   (context) =>
-                                      BookNowScreen(provider: provider),
+                                  BookNowScreen(provider: provider),
                             ),
                           );
                         },
@@ -676,41 +1098,92 @@ class ProviderDetailScreen extends StatelessWidget {
         backgroundColor: Colors.white38,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  shape: BoxShape.circle,
+            // Profile Image and Service Image side by side
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Profile Image
+                Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    shape: BoxShape.circle,
+                  ),
+                  child:
+                  provider.profileImage != null &&
+                      provider.profileImage!.isNotEmpty
+                      ? ClipRRect(
+                    borderRadius: BorderRadius.circular(60),
+                    child: Image.memory(
+                      base64Decode(provider.profileImage!),
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.person, size: 40),
+                    ),
+                  )
+                      : const Icon(Icons.person, size: 40),
                 ),
-                child:
-                    provider.profileImage != null &&
-                            provider.profileImage!.isNotEmpty
+                const SizedBox(width: 20),
+
+                // Service Image (Related Work Image)
+                Expanded(
+                  child: Container(
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: provider.relatedWorkImage.isNotEmpty
                         ? ClipRRect(
-                          borderRadius: BorderRadius.circular(60),
-                          child: Image.memory(
-                            base64Decode(
-                              provider.profileImage!.split(',').last,
-                            ),
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                        : const Icon(Icons.person, size: 60),
-              ),
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.memory(
+                        base64Decode(provider.relatedWorkImage),
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.work, size: 40),
+                      ),
+                    )
+                        : const Icon(Icons.work, size: 40, color: Colors.grey),
+                  ),
+                ),
+              ],
             ),
+
             const SizedBox(height: 20),
+
+            // Rating
+            Row(
+              children: [
+                RatingBarIndicator(
+                  rating: provider.averageRating,
+                  itemBuilder: (context, index) =>
+                  const Icon(Icons.star, color: Colors.amber),
+                  itemCount: 5,
+                  itemSize: 20,
+                  direction: Axis.horizontal,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  '${provider.averageRating.toStringAsFixed(1)} (${provider.ratingCount} reviews)',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+
             const SizedBox(height: 20),
 
             // Service Info
             _buildDetailRow('Service', provider.serviceName),
             _buildDetailRow('Experience', '${provider.experience} years'),
-            _buildDetailRow('Hourly Rate', 'Rs.${provider.hourlyRate}/hr'),
+            _buildDetailRow('Pricing', '${provider.priceType} - Rs.${provider.hourlyRate}/hr'),
+            if (provider.priceDescription != null && provider.priceDescription!.isNotEmpty)
+              _buildDetailRow('Price Details', provider.priceDescription!),
             _buildDetailRow('Phone', provider.phone),
             _buildDetailRow('Address', provider.location.address),
             _buildDetailRow(
@@ -768,7 +1241,6 @@ class ProviderDetailScreen extends StatelessWidget {
 }
 
 // Booking Screen
-
 class BookNowScreen extends StatefulWidget {
   final ServiceProviderDisplay provider;
 
@@ -813,12 +1285,12 @@ class _BookNowScreenState extends State<BookNowScreen> {
   Future<String?> getProviderToken(String providerId) async {
     try {
       final snapshot =
-          await FirebaseDatabase.instance
-              .ref()
-              .child("providers")
-              .child(providerId)
-              .child("token")
-              .get();
+      await FirebaseDatabase.instance
+          .ref()
+          .child("providers")
+          .child(providerId)
+          .child("token")
+          .get();
 
       if (snapshot.exists) {
         return snapshot.value as String;
@@ -846,10 +1318,10 @@ class _BookNowScreenState extends State<BookNowScreen> {
 
       final userId = FirebaseAuth.instance.currentUser!.uid;
       final userLocation =
-          Provider.of<ServiceDataProvider>(
-            context,
-            listen: false,
-          ).userLocation!;
+      Provider.of<ServiceDataProvider>(
+        context,
+        listen: false,
+      ).userLocation!;
 
       // Create appointment data with isConfirmed: false
       final appointment = {
@@ -870,7 +1342,7 @@ class _BookNowScreenState extends State<BookNowScreen> {
       try {
         // Save to Firebase
         final ref =
-            FirebaseDatabase.instance.ref().child('appointments').push();
+        FirebaseDatabase.instance.ref().child('appointments').push();
         final appointmentId = ref.key!;
 
         await ref.set({...appointment, 'appointmentId': appointmentId});
@@ -882,7 +1354,7 @@ class _BookNowScreenState extends State<BookNowScreen> {
             token: providerToken,
             title: "New Booking Request",
             body:
-                "You have a new booking request from ${FirebaseAuth.instance.currentUser!.displayName}",
+            "You have a new booking request from ${widget.provider.name}",
             data: {
               "click_action": "FLUTTER_NOTIFICATION_CLICK",
               "appointmentId": appointmentId,
@@ -899,61 +1371,76 @@ class _BookNowScreenState extends State<BookNowScreen> {
           ),
         );
       } catch (e) {
-        // EasyLoading.dismiss();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Booking failed: ${e.toString()}')),
         );
+      } finally {
+        EasyLoading.dismiss();
       }
-      // finally {
-      //   EasyLoading.dismiss();
-      // }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Book Appointment")),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text("Book Appointment"),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: ListView(
             children: [
-              ListTile(
-                title: Text(
-                  _selectedDate == null
-                      ? "Select Date"
-                      : "${_selectedDate!.toLocal()}".split(' ')[0],
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.calendar_today),
+                  title: Text(
+                    _selectedDate == null
+                        ? "Select Date"
+                        : DateFormat('EEE, MMM d, y').format(_selectedDate!),
+                  ),
+                  trailing: const Icon(Icons.arrow_drop_down),
+                  onTap: _pickDate,
                 ),
-                trailing: const Icon(Icons.calendar_today),
-                onTap: _pickDate,
               ),
-              ListTile(
-                title: Text(
-                  _selectedTime == null
-                      ? "Select Time"
-                      : _selectedTime!.format(context),
+              const SizedBox(height: 10),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.access_time),
+                  title: Text(
+                    _selectedTime == null
+                        ? "Select Time"
+                        : _selectedTime!.format(context),
+                  ),
+                  trailing: const Icon(Icons.arrow_drop_down),
+                  onTap: _pickTime,
                 ),
-                trailing: const Icon(Icons.access_time),
-                onTap: _pickTime,
               ),
+              const SizedBox(height: 20),
               TextFormField(
                 controller: _problemController,
                 maxLines: 4,
                 decoration: const InputDecoration(
                   labelText: "Describe your problem",
                   border: OutlineInputBorder(),
+                  alignLabelWithHint: true,
                 ),
                 validator:
                     (value) =>
-                        value!.isEmpty ? "Please describe the problem" : null,
+                value!.isEmpty ? "Please describe the problem" : null,
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _submitBooking,
-
-                child: const Text("Book Now"),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Text(
+                  "Book Now",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           ),
@@ -978,12 +1465,13 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     'https://images.unsplash.com/photo-1484154218962-a197022b5858?ixlib=rb-4.0.3&auto=format&fit=crop&w=1474&q=80',
   ];
 
-  late TextEditingController _searchController;
-  late List<Service> _filteredServices;
-  late ServiceDataProvider _serviceProvider;
+  TextEditingController _searchController = TextEditingController();
+  List<Service> _filteredServices = [];
+  List<ProviderServiceCard> _providerServices = [];
+  ServiceDataProvider? _serviceProvider;
 
   int _currentIndex = 0;
-  String? userName; // User's name
+  String? userName;
 
   String get _greeting {
     final hour = DateTime.now().hour;
@@ -995,11 +1483,11 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   @override
   void initState() {
     super.initState();
-    _searchController = TextEditingController();
-    _filteredServices = [];
-    _serviceProvider = Provider.of<ServiceDataProvider>(context, listen: false);
-    _serviceProvider.loadProviders();
     _loadUserName();
+    _loadProviderServices();
+    _serviceProvider = Provider.of<ServiceDataProvider>(context, listen: false);
+    _serviceProvider!.loadProviders();
+    _filteredServices = _serviceProvider!.services;
   }
 
   void _loadUserName() async {
@@ -1028,25 +1516,63 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     }
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_filteredServices.isEmpty) {
-      _filteredServices = _serviceProvider.services;
+  void _loadProviderServices() async {
+    try {
+      DatabaseReference ref = FirebaseDatabase.instance.ref("providers");
+      DatabaseEvent event = await ref.once();
+
+      if (event.snapshot.exists) {
+        final providersData = event.snapshot.value as Map<dynamic, dynamic>;
+        List<ProviderServiceCard> services = [];
+
+        providersData.forEach((providerId, providerData) {
+          final providerName = providerData['name'] ?? 'Unknown Provider';
+          final averageRating = double.tryParse(
+              providerData['averageRating']?.toString() ?? '0') ??
+              0;
+          final ratingCount = providerData['ratingCount'] ?? 0;
+
+          if (providerData['services'] != null) {
+            final servicesData =
+            providerData['services'] as Map<dynamic, dynamic>;
+
+            servicesData.forEach((serviceId, serviceData) {
+              if (serviceData['status'] == 'approved') {
+                services.add(ProviderServiceCard(
+                  serviceName: serviceData['service_name'] ?? 'Unknown Service',
+                  providerName: providerName,
+                  hourlyCharge:
+                  (serviceData['hourly_charge'] as num?)?.toDouble() ?? 0.0,
+                  rating: averageRating,
+                  ratingCount: ratingCount,
+                  imageBase64: serviceData['related_work_image'],
+                  serviceId: serviceData['service_id'],
+                  serviceType: serviceData['service_type'] ?? 'General Service', // Add default value
+                ));
+              }
+            });
+          }
+        });
+
+        setState(() {
+          _providerServices = services;
+        });
+      }
+    } catch (e) {
+      print("Error fetching provider services: $e");
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Screens for IndexedStack
     final screens = [
-      _buildHomeScreen(), // Home tab
+      _buildHomeScreen(),
+      _buildSearchScreen(),
+      const BookingsScreen(),
       ProfileScreen(userId: FirebaseAuth.instance.currentUser!.uid),
-      const BookingsScreen(), // Settings tab
     ];
 
     return Scaffold(
-      // 👇 Only show AppBar on Home tab
       appBar: _currentIndex == 0
           ? AppBar(
         backgroundColor: Colors.orange[400],
@@ -1068,10 +1594,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
               ),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.shopping_cart, color: Colors.white),
-            onPressed: () => Navigator.pushNamed(context, '/cart'),
-          ),
+
         ],
       )
           : null,
@@ -1080,9 +1603,11 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         children: screens,
       ),
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed, // 👈 Add this
+
         currentIndex: _currentIndex,
-        backgroundColor: Colors.orange[400],
         selectedItemColor: Colors.white,
+        backgroundColor: Colors.orange[400],
         unselectedItemColor: Colors.white.withOpacity(0.7),
         onTap: (index) {
           setState(() {
@@ -1091,8 +1616,12 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.search),label: 'search'),
+          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Cart'),
+
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
+
+
         ],
       ),
     );
@@ -1113,7 +1642,6 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Greeting Card
               _buildGreetingCard(),
               const SizedBox(height: 10),
 
@@ -1200,7 +1728,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                         onChanged: (value) {
                           setState(() {
                             _filteredServices =
-                                _serviceProvider.searchServices(value);
+                                _serviceProvider?.searchServices(value) ?? [];
                           });
                         },
                       ),
@@ -1218,8 +1746,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
                   itemCount: _filteredServices.length,
-                  gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 4,
                     childAspectRatio: 0.8,
                     crossAxisSpacing: 12,
@@ -1230,12 +1757,147 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   },
                 ),
               ),
+
+              const SizedBox(height: 20),
+
+              // Provider Services Section
+              if (_providerServices.isNotEmpty) ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    'Available Services',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    children: _providerServices
+                        .map((service) => _buildProviderServiceCard(service))
+                        .toList(),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
             ],
           ),
         ),
       ),
     );
   }
+
+
+
+
+
+Widget _buildSearchScreen() {
+    return Container ();
+}
+
+
+
+
+
+
+  Widget _buildProviderServiceCard(ProviderServiceCard service) {
+    return Card(
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(8),
+        leading: Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: service.imageBase64 != null && service.imageBase64!.isNotEmpty
+              ? ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.memory(
+              base64Decode(service.imageBase64!),
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+              const Icon(Icons.image_not_supported, size: 30),
+            ),
+          )
+              : const Icon(Icons.work, size: 30, color: Colors.grey),
+        ),
+        title: Text(
+          service.serviceType ?? 'General Service', // Provide fallback value
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("By ${service.providerName}"),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.star, color: Colors.amber, size: 16),
+                const SizedBox(width: 4),
+                Text(service.rating.toStringAsFixed(1)),
+                Text(" (${service.ratingCount})",
+                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              ],
+            ),
+          ],
+        ),
+        trailing: Text(
+          "Rs. ${service.hourlyCharge.toStringAsFixed(0)}",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.orange[700],
+            fontSize: 16,
+          ),
+        ),
+        onTap: () {
+          // Navigate to service providers screen for this service
+          Navigator.pushNamed(
+            context,
+            ServiceProvidersScreen.routeName,
+            arguments: service.serviceId,
+          );
+        },
+      ),
+    );
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   Widget _buildGreetingCard() {
     return Container(
@@ -1267,7 +1929,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w500,
-                    color: Colors.blue,
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -1293,6 +1955,28 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   }
 }
 
+class ProviderServiceCard {
+  final String serviceName;
+  final String providerName;
+  final double hourlyCharge;
+  final double rating;
+  final int ratingCount;
+  final String? imageBase64;
+  final String serviceId;
+  final String serviceType;
+
+  ProviderServiceCard({
+    required this.serviceName,
+    required this.providerName,
+    required this.hourlyCharge,
+    required this.rating,
+    required this.ratingCount,
+    this.imageBase64,
+    required this.serviceId,
+    required this.serviceType,
+  });
+}
+
 class ServiceCard extends StatelessWidget {
   final Service service;
 
@@ -1310,11 +1994,12 @@ class ServiceCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           onTap: () async {
             final location =
-                Provider.of<ServiceDataProvider>(context, listen: false).userLocation;
+                Provider.of<ServiceDataProvider>(context, listen: false)
+                    .userLocation;
 
             if (location == null) {
-              final newLocation =
-              await Navigator.pushNamed(context, LocationScreen.routeName)
+              final newLocation = await Navigator.pushNamed(
+                  context, LocationScreen.routeName)
               as LocationModel?;
 
               if (newLocation != null) {
@@ -1364,4 +2049,19 @@ class ServiceCard extends StatelessWidget {
     );
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
