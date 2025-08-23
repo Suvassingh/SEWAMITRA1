@@ -14,9 +14,7 @@ import 'package:provider/provider.dart';
 import 'package:sewamitra/user/cart.dart';
 import 'package:sewamitra/user/profile.dart';
 import 'package:sewamitra/user/user_notifications_screen.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-import '../notificationService.dart';
 import '../services/send_notification_service.dart';
 
 // Service Model
@@ -155,10 +153,6 @@ class ProviderModel {
     );
   }
 }
-
-
-
-
 
 // Service Provider Display Model
 class ServiceProviderDisplay {
@@ -345,10 +339,72 @@ class ServiceDataProvider with ChangeNotifier {
 
     return providers;
   }
+
+  // Get all services from providers within 20 km range
+  List<ProviderServiceCard> getAllServicesWithin20Km() {
+    if (_userLocation == null) return [];
+
+    final services = <ProviderServiceCard>[];
+
+    for (final provider in _providers) {
+      for (final serviceEntry in provider.services.entries) {
+        final service = serviceEntry.value;
+        if (service.status == 'approved') {
+          // Calculate distance using geolocator
+          double distance =
+              Geolocator.distanceBetween(
+                _userLocation!.latitude,
+                _userLocation!.longitude,
+                service.location.latitude,
+                service.location.longitude,
+              ) /
+                  1000; // Convert to kilometers
+
+          // Only include providers within 20 km
+          if (distance <= 20.0) {
+            services.add(
+              ProviderServiceCard(
+                serviceName: service.serviceName,
+                providerName: provider.name,
+                hourlyCharge: service.hourlyCharge,
+                rating: provider.averageRating,
+                ratingCount: provider.ratingCount,
+                imageBase64: service.relatedWorkImage,
+                serviceId: service.serviceId,
+                serviceType: service.serviceType,
+              ),
+            );
+          }
+        }
+      }
+    }
+
+    return services;
+  }
 }
 
+// ProviderServiceCard Model
+class ProviderServiceCard {
+  final String serviceName;
+  final String providerName;
+  final double hourlyCharge;
+  final double rating;
+  final int ratingCount;
+  final String? imageBase64;
+  final String serviceId;
+  final String serviceType;
 
-
+  ProviderServiceCard({
+    required this.serviceName,
+    required this.providerName,
+    required this.hourlyCharge,
+    required this.rating,
+    required this.ratingCount,
+    this.imageBase64,
+    required this.serviceId,
+    required this.serviceType,
+  });
+}
 
 // Your LocationModel and ServiceDataProvider classes here...
 
@@ -488,82 +544,6 @@ class _LocationScreenState extends State<LocationScreen>
     }
   }
 
-  // Widget _buildMapPreview() {
-  //   if (_selectedLocation == null) return const SizedBox.shrink();
-  //
-  //   return FadeTransition(
-  //     opacity: _fadeAnimation,
-  //     child: SlideTransition(
-  //       position: _slideAnimation,
-  //       child: Container(
-  //         margin: const EdgeInsets.only(top: 24, bottom: 16),
-  //         height: 250,
-  //         decoration: BoxDecoration(
-  //           color: Colors.white,
-  //           borderRadius: BorderRadius.circular(16),
-  //           boxShadow: [
-  //             BoxShadow(
-  //               color: Colors.black.withOpacity(0.1),
-  //               blurRadius: 10,
-  //               offset: const Offset(0, 4),
-  //             ),
-  //           ],
-  //         ),
-  //         child: ClipRRect(
-  //           borderRadius: BorderRadius.circular(16),
-  //           child: FlutterMap(
-  //             mapController: _mapController,
-  //             options: MapOptions(
-  //               initialCenter: LatLng(
-  //                 _selectedLocation!.latitude,
-  //                 _selectedLocation!.longitude,
-  //               ),
-  //               initialZoom: 15.0,
-  //               interactionOptions: const InteractionOptions(
-  //                 flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-  //               ),
-  //             ),
-  //             children: [
-  //               TileLayer(
-  //                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-  //                 userAgentPackageName: 'com.example.app',
-  //                 // Additional tile providers if needed:
-  //                 // urlTemplate: 'https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png',
-  //                 // subdomains: const ['a', 'b', 'c'],
-  //               ),
-  //               MarkerLayer(
-  //                 markers: [
-  //                   Marker(
-  //                     point: LatLng(
-  //                       _selectedLocation!.latitude,
-  //                       _selectedLocation!.longitude,
-  //                     ),
-  //                     width: 40,
-  //                     height: 40,
-  //                     child: const Icon(
-  //                       Icons.location_pin,
-  //                       color: Colors.red,
-  //                       size: 40,
-  //                     ),
-  //                   ),
-  //                 ],
-  //               ),
-  //                RichAttributionWidget(
-  //                 attributions: [
-  //                   TextSourceAttribution(
-  //                     'OpenStreetMap contributors',
-  //                     onTap: () => launchUrl(
-  //                         Uri.parse('https://openstreetmap.org/copyright')),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
 
   void _saveLocation() {
     if (_selectedLocation != null) {
@@ -943,13 +923,7 @@ class ServiceProviderCard extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-
-
                         const Spacer(),
-
-
-
-
                         RatingBarIndicator(
                           rating: provider.averageRating,
                           itemBuilder:
@@ -969,8 +943,6 @@ class ServiceProviderCard extends StatelessWidget {
                         ),
                       ],
                     ),
-
-
                     // Service Name
                     Text(
                       provider.serviceName,
@@ -981,7 +953,6 @@ class ServiceProviderCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-
                     // Experience
                     Row(
                       children: [
@@ -992,11 +963,9 @@ class ServiceProviderCard extends StatelessWidget {
                           style: TextStyle(color: Colors.grey[600]),
                         ),
                         const Spacer(),
-
                       ],
                     ),
                     const SizedBox(height: 4),
-
                     // Distance and Rate
                     Row(
                       children: [
@@ -1011,26 +980,23 @@ class ServiceProviderCard extends StatelessWidget {
                           style: TextStyle(color: Colors.grey[600]),
                         ),
                         const Spacer(),
-
                       ],
                     ),
                     Row(
                       children: [
-                      const Icon(
-                        Icons.attach_money,
-                        size: 16,
-                        color: Colors.green,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Rs.${provider.hourlyRate}/${provider.priceType}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                  ],
+                        const Icon(
+                          Icons.attach_money,
+                          size: 16,
+                          color: Colors.green,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Rs.${provider.hourlyRate}/${provider.priceType}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
                     ),
-
                     const SizedBox(height: 12),
-
                     // Book Button
                     SizedBox(
                       width: double.infinity,
@@ -1239,6 +1205,25 @@ class ProviderDetailScreen extends StatelessWidget {
     );
   }
 }
+Future<String?> getProviderToken(String providerId) async {
+  try {
+    final snapshot =
+    await FirebaseDatabase.instance
+        .ref()
+        .child("providers")
+        .child(providerId)
+        .child("token")
+        .get();
+
+    if (snapshot.exists) {
+      return snapshot.value as String;
+    }
+    return null;
+  } catch (e) {
+    debugPrint("Error fetching provider token: $e");
+    return null;
+  }
+}
 
 // Booking Screen
 class BookNowScreen extends StatefulWidget {
@@ -1282,25 +1267,6 @@ class _BookNowScreenState extends State<BookNowScreen> {
     }
   }
 
-  Future<String?> getProviderToken(String providerId) async {
-    try {
-      final snapshot =
-      await FirebaseDatabase.instance
-          .ref()
-          .child("providers")
-          .child(providerId)
-          .child("token")
-          .get();
-
-      if (snapshot.exists) {
-        return snapshot.value as String;
-      }
-      return null;
-    } catch (e) {
-      debugPrint("Error fetching provider token: $e");
-      return null;
-    }
-  }
 
   Future<void> _submitBooking() async {
     if (_formKey.currentState!.validate() &&
@@ -1354,12 +1320,13 @@ class _BookNowScreenState extends State<BookNowScreen> {
             token: providerToken,
             title: "New Booking Request",
             body:
-            "You have a new booking request from ${widget.provider.name}",
+            "You have a new booking request",
             data: {
               "click_action": "FLUTTER_NOTIFICATION_CLICK",
               "appointmentId": appointmentId,
             },
           );
+          await EasyLoading.dismiss();
         }
 
         Navigator.pop(context);
@@ -1467,7 +1434,6 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
   TextEditingController _searchController = TextEditingController();
   List<Service> _filteredServices = [];
-  List<ProviderServiceCard> _providerServices = [];
   ServiceDataProvider? _serviceProvider;
 
   int _currentIndex = 0;
@@ -1484,7 +1450,6 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   void initState() {
     super.initState();
     _loadUserName();
-    _loadProviderServices();
     _serviceProvider = Provider.of<ServiceDataProvider>(context, listen: false);
     _serviceProvider!.loadProviders();
     _filteredServices = _serviceProvider!.services;
@@ -1513,53 +1478,6 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     } catch (e) {
       print("Error fetching user name: $e");
       return null;
-    }
-  }
-
-  void _loadProviderServices() async {
-    try {
-      DatabaseReference ref = FirebaseDatabase.instance.ref("providers");
-      DatabaseEvent event = await ref.once();
-
-      if (event.snapshot.exists) {
-        final providersData = event.snapshot.value as Map<dynamic, dynamic>;
-        List<ProviderServiceCard> services = [];
-
-        providersData.forEach((providerId, providerData) {
-          final providerName = providerData['name'] ?? 'Unknown Provider';
-          final averageRating = double.tryParse(
-              providerData['averageRating']?.toString() ?? '0') ??
-              0;
-          final ratingCount = providerData['ratingCount'] ?? 0;
-
-          if (providerData['services'] != null) {
-            final servicesData =
-            providerData['services'] as Map<dynamic, dynamic>;
-
-            servicesData.forEach((serviceId, serviceData) {
-              if (serviceData['status'] == 'approved') {
-                services.add(ProviderServiceCard(
-                  serviceName: serviceData['service_name'] ?? 'Unknown Service',
-                  providerName: providerName,
-                  hourlyCharge:
-                  (serviceData['hourly_charge'] as num?)?.toDouble() ?? 0.0,
-                  rating: averageRating,
-                  ratingCount: ratingCount,
-                  imageBase64: serviceData['related_work_image'],
-                  serviceId: serviceData['service_id'],
-                  serviceType: serviceData['service_type'] ?? 'General Service', // Add default value
-                ));
-              }
-            });
-          }
-        });
-
-        setState(() {
-          _providerServices = services;
-        });
-      }
-    } catch (e) {
-      print("Error fetching provider services: $e");
     }
   }
 
@@ -1594,7 +1512,6 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
               ),
             ),
           ),
-
         ],
       )
           : null,
@@ -1603,12 +1520,11 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         children: screens,
       ),
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed, // 👈 Add this
-
+        type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
-        selectedItemColor: Colors.white,
+        selectedItemColor: Colors.deepOrange,
         backgroundColor: Colors.orange[400],
-        unselectedItemColor: Colors.white.withOpacity(0.7),
+        unselectedItemColor: Colors.white,
         onTap: (index) {
           setState(() {
             _currentIndex = index;
@@ -1618,10 +1534,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.search),label: 'search'),
           BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Cart'),
-
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-
-
         ],
       ),
     );
@@ -1760,30 +1673,42 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
               const SizedBox(height: 20),
 
-              // Provider Services Section
-              if (_providerServices.isNotEmpty) ...[
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text(
-                    'Available Services',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    children: _providerServices
-                        .map((service) => _buildProviderServiceCard(service))
-                        .toList(),
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
+              // Provider Services Section - Updated to use 20km range
+              Consumer<ServiceDataProvider>(
+                builder: (context, serviceProvider, child) {
+                  final servicesWithin20Km = serviceProvider.getAllServicesWithin20Km();
+
+                  if (servicesWithin20Km.isEmpty) {
+                    return const SizedBox(); // Return empty if no services
+                  }
+
+                  return Column(
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          'Available Services Near You',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          children: servicesWithin20Km
+                              .map((service) => _buildProviderServiceCard(service))
+                              .toList(),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -1791,18 +1716,9 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     );
   }
 
-
-
-
-
-Widget _buildSearchScreen() {
+  Widget _buildSearchScreen() {
     return Container ();
-}
-
-
-
-
-
+  }
 
   Widget _buildProviderServiceCard(ProviderServiceCard service) {
     return Card(
@@ -1831,7 +1747,7 @@ Widget _buildSearchScreen() {
               : const Icon(Icons.work, size: 30, color: Colors.grey),
         ),
         title: Text(
-          service.serviceType ?? 'General Service', // Provide fallback value
+          service.serviceType,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
@@ -1870,35 +1786,6 @@ Widget _buildSearchScreen() {
     );
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   Widget _buildGreetingCard() {
     return Container(
       margin: const EdgeInsets.all(16),
@@ -1934,7 +1821,7 @@ Widget _buildSearchScreen() {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  userName != null ? "Welcome, $userName 👋" : "Loading...",
+                  userName != null ? "Welcomes, $userName 👋" : "Loading...",
                   style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -1953,28 +1840,6 @@ Widget _buildSearchScreen() {
       ),
     );
   }
-}
-
-class ProviderServiceCard {
-  final String serviceName;
-  final String providerName;
-  final double hourlyCharge;
-  final double rating;
-  final int ratingCount;
-  final String? imageBase64;
-  final String serviceId;
-  final String serviceType;
-
-  ProviderServiceCard({
-    required this.serviceName,
-    required this.providerName,
-    required this.hourlyCharge,
-    required this.rating,
-    required this.ratingCount,
-    this.imageBase64,
-    required this.serviceId,
-    required this.serviceType,
-  });
 }
 
 class ServiceCard extends StatelessWidget {
@@ -2050,18 +1915,4 @@ class ServiceCard extends StatelessWidget {
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// ... (rest of the code remains the same)

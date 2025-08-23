@@ -282,11 +282,6 @@
 //   }
 // }
 
-
-
-
-
-
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -307,27 +302,21 @@ class _ProviderNotificationsScreenState
     extends State<ProviderNotificationsScreen> {
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  // final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   void initState() {
     super.initState();
-    // _audioPlayer.setSource(AssetSource('sounds/notification.mp3'));
   }
-
-
 
   Future<String?> getUserToken(String userId) async {
     try {
       final snapshot =
-      await _dbRef.child("users").child(userId).child("token").get();
+          await _dbRef.child("users").child(userId).child("token").get();
 
       if (snapshot.exists) {
         return snapshot.value as String;
-      } else {
-        debugPrint(" No token found for user $userId");
-        return null;
       }
+      return null;
     } catch (e) {
       debugPrint(" Error fetching user token: $e");
       return null;
@@ -337,7 +326,7 @@ class _ProviderNotificationsScreenState
   Future<String?> getUserName(String userId) async {
     try {
       final snapshot =
-      await _dbRef.child("users").child(userId).child("name").get();
+          await _dbRef.child("users").child(userId).child("name").get();
       if (snapshot.exists) {
         return snapshot.value as String;
       } else {
@@ -375,11 +364,11 @@ class _ProviderNotificationsScreenState
       ),
       body: StreamBuilder<DatabaseEvent>(
         stream:
-        _dbRef
-            .child('appointments')
-            .orderByChild('providerId')
-            .equalTo(user.uid)
-            .onValue,
+            _dbRef
+                .child('appointments')
+                .orderByChild('providerId')
+                .equalTo(user.uid)
+                .onValue,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
@@ -395,14 +384,14 @@ class _ProviderNotificationsScreenState
 
           // Filter unconfirmed appointments
           final appointmentsMap =
-          snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+              snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
           final pendingAppointments =
               appointmentsMap.entries
                   .where(
                     (entry) =>
-                entry.value['isConfirmed'] == false &&
-                    entry.value['status'] != 'rejected',
-              )
+                        entry.value['isConfirmed'] == false &&
+                        entry.value['status'] != 'rejected',
+                  )
                   .toList()
                   .reversed; // latest first
 
@@ -425,18 +414,51 @@ class _ProviderNotificationsScreenState
                     margin: const EdgeInsets.all(8.0),
                     child: ListTile(
                       leading: const Icon(Icons.event, color: Colors.blue),
-                      title: Text('Booking for ${data['serviceName']}',style: TextStyle(color: Colors.redAccent,fontSize: 17,fontWeight: FontWeight.bold)),
+                      title: Text(
+                        'Booking for ${data['serviceName']}',
+                        style: TextStyle(
+                          color: Colors.redAccent,
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Customer: $customerName',style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold,color: Colors.black ),),
-                          const SizedBox(height: 4),
-                          Text('Service: ${data['serviceName']}',style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold,color: Colors.black ),),
-                          const SizedBox(height: 4),
-                          Text('Problem: ${data['problemDescription']}',style: TextStyle(fontSize: 12,fontWeight: FontWeight.bold,color: Colors.black ),),
+                          Text(
+                            'Customer: $customerName',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
                           const SizedBox(height: 4),
                           Text(
-                            'Time: ${_formatTimestamp(data['appointmentTime'])}',style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold,color: Colors.black ),
+                            'Service: ${data['serviceName']}',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Problem: ${data['problemDescription']}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Time: ${_formatTimestamp(data['appointmentTime'])}',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
                           ),
                           const SizedBox(height: 4),
                           GestureDetector(
@@ -448,20 +470,34 @@ class _ProviderNotificationsScreenState
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.account_balance_wallet, color: Colors.green, size: 24),
+                                  Icon(
+                                    Icons.account_balance_wallet,
+                                    color: Colors.green,
+                                    size: 24,
+                                  ),
                                   const SizedBox(width: 8),
-                                  Text('Price: Rs.${data['price']}',style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold,color: Colors.green),),
+                                  Text(
+                                    'Price: Rs.${data['price']}',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
-                          )
+                          ),
                         ],
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.verified, color: Colors.green),
+                            icon: const Icon(
+                              Icons.verified,
+                              color: Colors.green,
+                            ),
                             onPressed: () async {
                               _handleBookingResponse(
                                 appointment.key.toString(),
@@ -471,16 +507,18 @@ class _ProviderNotificationsScreenState
                               await SendNotificationService.sendNotificationUsingApi(
                                 token: await getUserToken(data['userId']),
                                 title: "Booking Accepted",
-                                body: "Your Booking For : ${data['serviceName']} has been accepted ",
-                                data: {
-                                  "click_action": "To go to booking",
-                                },
+                                body:
+                                    "Your Booking For : ${data['serviceName']} has been accepted ",
+                                data: {"click_action": "To go to booking"},
                               );
                               EasyLoading.dismiss();
                             },
                           ),
                           IconButton(
-                            icon: const Icon(Icons.highlight_off, color: Colors.red),
+                            icon: const Icon(
+                              Icons.highlight_off,
+                              color: Colors.red,
+                            ),
                             onPressed: () async {
                               _handleBookingResponse(
                                 appointment.key.toString(),
@@ -490,10 +528,9 @@ class _ProviderNotificationsScreenState
                               await SendNotificationService.sendNotificationUsingApi(
                                 token: await getUserToken(data['userId']),
                                 title: "Booking Rejected",
-                                body: "Your Booking For : ${data['serviceName']} has been rejected",
-                                data: {
-                                  "click_action": "To go to booking",
-                                },
+                                body:
+                                    "Your Booking For : ${data['serviceName']} has been rejected",
+                                data: {"click_action": "To go to booking"},
                               );
                               EasyLoading.dismiss();
                             },
@@ -512,14 +549,11 @@ class _ProviderNotificationsScreenState
   }
 
   Future<void> _handleBookingResponse(
-      String appointmentId,
-      Map<dynamic, dynamic> data,
-      String status,
-      ) async {
+    String appointmentId,
+    Map<dynamic, dynamic> data,
+    String status,
+  ) async {
     try {
-      // Play response sound
-      // await _audioPlayer.play(AssetSource('sounds/notification.mp3'));
-
       // Update appointment status
       await _dbRef.child('appointments').child(appointmentId).update({
         'status': status,
@@ -532,11 +566,11 @@ class _ProviderNotificationsScreenState
         await SendNotificationService.sendNotificationUsingApi(
           token: userToken,
           title:
-          status == 'accepted' ? "Booking Confirmed!" : "Booking Declined",
+              status == 'accepted' ? "Booking Confirmed!" : "Booking Declined",
           body:
-          status == 'accepted'
-              ? "Your ${data['serviceName']} booking has been confirmed"
-              : "Your ${data['serviceName']} booking was declined",
+              status == 'accepted'
+                  ? "Your ${data['serviceName']} booking has been confirmed"
+                  : "Your ${data['serviceName']} booking was declined",
           data: {
             "click_action": "FLUTTER_NOTIFICATION_CLICK",
             "appointmentId": appointmentId,

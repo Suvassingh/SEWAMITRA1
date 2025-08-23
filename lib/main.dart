@@ -29,10 +29,13 @@ Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
 }
 
+
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
+
 
   runApp(
     ChangeNotifierProvider(
@@ -109,6 +112,10 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
+
+
+
+
 
 // class SplashScreen extends StatefulWidget {
 //   const SplashScreen({super.key});
