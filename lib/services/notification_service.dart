@@ -69,7 +69,7 @@ class NotificationServices {
     RemoteMessage message,
   ) async {
     var androidInitSettings = const AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
+        '@mipmap/ic_launcher'
     );
     var iOSInitSettings = const DarwinInitializationSettings();
     var initializationSettings = InitializationSettings(
@@ -78,7 +78,7 @@ class NotificationServices {
     );
     await _flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
-      onDidReceiveBackgroundNotificationResponse: (payload) {
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
         handleMessege(context, message);
       },
     );
@@ -127,6 +127,8 @@ class NotificationServices {
           priority: Priority.high,
           playSound: true,
           sound: channel.sound,
+          icon: '@mipmap/ic_launcher',
+
         );
     //   ios setting
     DarwinNotificationDetails darwinNotificationDetails =

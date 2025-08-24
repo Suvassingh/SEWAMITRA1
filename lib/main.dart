@@ -1,5 +1,119 @@
-// main.dart
-//aaa
+// // main.dart
+// //aaa
+// import 'package:firebase_core/firebase_core.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_database/firebase_database.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
+// import 'package:flutter/material.dart';
+// import 'package:flutter/services.dart';
+// import 'package:flutter_dotenv/flutter_dotenv.dart';
+// import 'package:flutter_easyloading/flutter_easyloading.dart';
+// import 'package:provider/provider.dart';
+// import 'package:sewamitra/provider/contact_Admin.dart';
+// import 'package:sewamitra/provider/providerHomeScreen.dart';
+// import 'package:sewamitra/provider/providerProfile.dart';
+// import 'package:sewamitra/provider/provider_notifications_screen.dart';
+// import 'package:sewamitra/services/fcm_service.dart';
+// import 'package:sewamitra/services/get_service_key.dart';
+// import 'package:sewamitra/services/notification_service.dart';
+// import 'package:sewamitra/services/send_notification_service.dart';
+// import 'package:sewamitra/user/cart.dart';
+// import 'package:sewamitra/user/profile.dart';
+// import 'package:sewamitra/user/userHomeScreen.dart';
+// import 'package:sewamitra/user/user_notifications_screen.dart';
+//
+// import 'notificationService.dart';
+// // suvas
+// @pragma('vm:entry-point')
+// Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
+//   await Firebase.initializeApp();
+// }
+//
+//
+//
+// void main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   await Firebase.initializeApp();
+//   FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
+//
+//
+//   runApp(
+//     ChangeNotifierProvider(
+//       create: (context) => ServiceDataProvider(),
+//       // Updated to ServiceDataProvider
+//       child: const MyApp(),
+//     ),
+//   );
+// }
+//
+// class MyApp extends StatefulWidget {
+//   const MyApp({super.key});
+//
+//   @override
+//   State<MyApp> createState() => _MyAppState();
+// }
+//
+// class _MyAppState extends State<MyApp> {
+//   NotificationServices notificationService = NotificationServices();
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//     notificationService.requestNotificationPermission();
+//     notificationService.getDeviceToken();
+//     FcmService.firebaseInit();
+//     notificationService.firebaseInit(context);
+//     notificationService.setupInteractedMessage(context);
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       title: 'SewaMitra',
+//       debugShowCheckedModeBanner: false,
+//       theme: ThemeData(
+//         primarySwatch: Colors.blue,
+//         scaffoldBackgroundColor: const Color(0xFF5D69BE),
+//         fontFamily: 'Poppins', // Add a custom font if desired
+//       ),
+//       routes: {
+//         '/role_selection': (context) => const RoleSelectionScreen(),
+//         '/auth': (context) => const AuthTabsScreen(),
+//         '/home_user': (context) => const HomeScreen(),
+//         '/home_provider': (context) => const ProviderHomeScreen(),
+//         '/user_home': (context) => const UserHomeScreen(),
+//         '/auth_tabs': (context) => const AuthTabsScreen(),
+//         '/cart': (context) => const BookingsScreen(),
+//         '/notifications' : (context) => const ProviderNotificationsScreen(),
+//         '/usernotification' : (context) => const UserNotificationsScreen(),
+//         '/contactadmin': (context) => const ContactAdminScreen(),
+//
+//         '/profile': (context) {
+//           // Get UID dynamically from FirebaseAuth
+//           final user = FirebaseAuth.instance.currentUser;
+//           if (user == null) {
+//             // Redirect to login if not authenticated
+//             return const AuthTabsScreen();
+//           }
+//           return ProfileScreen(userId: user.uid);
+//         },
+//         '/provider_profile': (context) {
+//           final user = FirebaseAuth.instance.currentUser;
+//           if (user == null) return const AuthTabsScreen();
+//           return ProviderProfileScreen(providerId: user.uid);
+//         },
+//         LocationScreen.routeName: (_) => LocationScreen(),
+//
+//         ServiceProvidersScreen.routeName:
+//             (context) => const ServiceProvidersScreen(),
+//         // Add other routes here
+//       },
+//       home: const SplashScreen(),
+//     );
+//   }
+// }
+
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -23,24 +137,24 @@ import 'package:sewamitra/user/userHomeScreen.dart';
 import 'package:sewamitra/user/user_notifications_screen.dart';
 
 import 'notificationService.dart';
-// suvas
+
+// ✅ Must be a top-level function, annotated for background isolate
 @pragma('vm:entry-point')
-Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
+  print("Handling background message: ${message.messageId}");
 }
-
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
 
+  // ✅ Register background handler BEFORE runApp
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   runApp(
     ChangeNotifierProvider(
       create: (context) => ServiceDataProvider(),
-      // Updated to ServiceDataProvider
       child: const MyApp(),
     ),
   );
@@ -74,7 +188,7 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: const Color(0xFF5D69BE),
-        fontFamily: 'Poppins', // Add a custom font if desired
+        fontFamily: 'Poppins',
       ),
       routes: {
         '/role_selection': (context) => const RoleSelectionScreen(),
@@ -84,17 +198,13 @@ class _MyAppState extends State<MyApp> {
         '/user_home': (context) => const UserHomeScreen(),
         '/auth_tabs': (context) => const AuthTabsScreen(),
         '/cart': (context) => const BookingsScreen(),
-        '/notifications' : (context) => const ProviderNotificationsScreen(),
-        '/usernotification' : (context) => const UserNotificationsScreen(),
+        '/notifications': (context) => const ProviderNotificationsScreen(),
+        '/usernotification': (context) => const UserNotificationsScreen(),
         '/contactadmin': (context) => const ContactAdminScreen(),
 
         '/profile': (context) {
-          // Get UID dynamically from FirebaseAuth
           final user = FirebaseAuth.instance.currentUser;
-          if (user == null) {
-            // Redirect to login if not authenticated
-            return const AuthTabsScreen();
-          }
+          if (user == null) return const AuthTabsScreen();
           return ProfileScreen(userId: user.uid);
         },
         '/provider_profile': (context) {
@@ -103,17 +213,13 @@ class _MyAppState extends State<MyApp> {
           return ProviderProfileScreen(providerId: user.uid);
         },
         LocationScreen.routeName: (_) => LocationScreen(),
-
-        ServiceProvidersScreen.routeName:
-            (context) => const ServiceProvidersScreen(),
-        // Add other routes here
+        ServiceProvidersScreen.routeName: (context) =>
+        const ServiceProvidersScreen(),
       },
       home: const SplashScreen(),
     );
   }
 }
-
-
 
 
 

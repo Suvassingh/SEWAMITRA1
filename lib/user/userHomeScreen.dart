@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -14,6 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:sewamitra/user/cart.dart';
 import 'package:sewamitra/user/profile.dart';
 import 'package:sewamitra/user/user_notifications_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../services/send_notification_service.dart';
 
@@ -21,9 +21,9 @@ import '../services/send_notification_service.dart';
 class Service {
   final String id;
   final String name;
-  final String imageUrl;
+  final String imageAssets;
 
-  Service({required this.id, required this.name, required this.imageUrl});
+  Service({required this.id, required this.name, required this.imageAssets});
 }
 
 // Location Model
@@ -140,12 +140,12 @@ class ProviderModel {
       profileImage: map['profileImage'],
       role: map['role'] ?? '',
       services:
-      (map['services'] as Map<dynamic, dynamic>?)?.map((key, value) {
-        return MapEntry(
-          key.toString(),
-          ServiceOffering.fromMap(Map<String, dynamic>.from(value)),
-        );
-      }) ??
+          (map['services'] as Map<dynamic, dynamic>?)?.map((key, value) {
+            return MapEntry(
+              key.toString(),
+              ServiceOffering.fromMap(Map<String, dynamic>.from(value)),
+            );
+          }) ??
           {},
       uid: map['uid'] ?? '',
       averageRating: map['averageRating']?.toDouble() ?? 0.0,
@@ -200,51 +200,39 @@ class ServiceDataProvider with ChangeNotifier {
   List<Service> _services = [
     Service(
       id: '1',
-      name: 'Cleaning',
-      imageUrl:
-      'https://images.unsplash.com/photo-1581578021426-3c1b74b96b6a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
+      name: 'Technology And Digital Services ',
+      imageAssets: 'assets/images/telecommunication.png',
     ),
     Service(
       id: '2',
-      name: 'Plumbing',
-      imageUrl:
-      'https://images.unsplash.com/photo-1633441380346-615a1a87f7c3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
+      name: 'House Related Services',
+      imageAssets: 'assets/images/house.png',
     ),
     Service(
       id: '3',
-      name: 'Electrical',
-      imageUrl:
-      'https://images.unsplash.com/photo-1590959651373-a3db0f38a961?ixlib=rb-4.0.3&auto=format&fit=crop&w=1478&q=80',
+      name: 'Health Care',
+      imageAssets: 'assets/images/medical.png',
     ),
     Service(
       id: '4',
-      name: 'Painting',
-      imageUrl:
-      'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
+      name: 'Motor Vehicle',
+      imageAssets: 'assets/images/traffic.png',
     ),
     Service(
       id: '5',
-      name: 'Carpenter',
-      imageUrl:
-      'https://images.unsplash.com/photo-1601342630314-8427c38bf5e6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1381&q=80',
+      name: 'Skill And Training',
+      imageAssets: 'assets/images/training.png',
     ),
     Service(
       id: '6',
-      name: 'Gardening',
-      imageUrl:
-      'https://images.unsplash.com/photo-1591892150210-0be5b3c7d7b1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
+      name: 'Beautification',
+      imageAssets: 'assets/images/makeup.png',
     ),
-    Service(
-      id: '7',
-      name: 'Pet Care',
-      imageUrl:
-      'https://images.unsplash.com/photo-1596272875729-ed2ff7d6d9c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
-    ),
+    Service(id: '7', name: 'Pet Care', imageAssets: 'assets/images/pet.png'),
     Service(
       id: '8',
-      name: 'Home Services',
-      imageUrl:
-      'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
+      name: 'Education',
+      imageAssets: 'assets/images/education.png',
     ),
   ];
 
@@ -304,7 +292,7 @@ class ServiceDataProvider with ChangeNotifier {
                 service.location.latitude,
                 service.location.longitude,
               ) /
-                  1000; // Convert to kilometers
+              1000; // Convert to kilometers
 
           // Only include providers within 20 km
           if (distance <= 20.0) {
@@ -358,7 +346,7 @@ class ServiceDataProvider with ChangeNotifier {
                 service.location.latitude,
                 service.location.longitude,
               ) /
-                  1000; // Convert to kilometers
+              1000; // Convert to kilometers
 
           // Only include providers within 20 km
           if (distance <= 20.0) {
@@ -435,20 +423,14 @@ class _LocationScreenState extends State<LocationScreen>
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.5),
       end: const Offset(0, 0),
     ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOut,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
   }
 
@@ -488,7 +470,9 @@ class _LocationScreenState extends State<LocationScreen>
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Location permissions are permanently denied, enable them in app settings'),
+            content: const Text(
+              'Location permissions are permanently denied, enable them in app settings',
+            ),
             backgroundColor: Colors.red,
             action: SnackBarAction(
               label: 'Open Settings',
@@ -544,16 +528,13 @@ class _LocationScreenState extends State<LocationScreen>
     }
   }
 
-
   void _saveLocation() {
     if (_selectedLocation != null) {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
-        FirebaseDatabase.instance
-            .ref()
-            .child('users')
-            .child(userId)
-            .update({'location': _selectedLocation!.toMap()});
+        FirebaseDatabase.instance.ref().child('users').child(userId).update({
+          'location': _selectedLocation!.toMap(),
+        });
       }
 
       Provider.of<ServiceDataProvider>(
@@ -658,22 +639,27 @@ class _LocationScreenState extends State<LocationScreen>
                           child: ElevatedButton.icon(
                             onPressed: _getCurrentLocation,
                             icon: const Icon(Icons.my_location, size: 20),
-                            label: _isLoading
-                                ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white),
-                              ),
-                            )
-                                : const Text('Detect Location'),
+                            label:
+                                _isLoading
+                                    ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                      ),
+                                    )
+                                    : const Text('Detect Location'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue[700],
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(
-                                  vertical: 16, horizontal: 20),
+                                vertical: 16,
+                                horizontal: 20,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -684,7 +670,7 @@ class _LocationScreenState extends State<LocationScreen>
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16,),
+                  const SizedBox(height: 16),
                   // _buildMapPreview(),
                   if (_selectedLocation != null) ...[
                     FadeTransition(
@@ -706,8 +692,11 @@ class _LocationScreenState extends State<LocationScreen>
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.check_circle,
-                                  color: Colors.green, size: 24),
+                              const Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                                size: 24,
+                              ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
@@ -737,10 +726,12 @@ class _LocationScreenState extends State<LocationScreen>
                       ),
                     ),
                   ],
-                  const SizedBox(height: 60,),
+                  const SizedBox(height: 60),
                   Container(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
 
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -757,9 +748,10 @@ class _LocationScreenState extends State<LocationScreen>
                       child: ElevatedButton(
                         onPressed: _saveLocation,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _selectedLocation != null
-                              ? Colors.blue[700]
-                              : Colors.grey[400],
+                          backgroundColor:
+                              _selectedLocation != null
+                                  ? Colors.blue[700]
+                                  : Colors.grey[400],
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -778,11 +770,9 @@ class _LocationScreenState extends State<LocationScreen>
                     ),
                   ),
                 ],
-
               ),
             ),
           ),
-
         ],
       ),
     );
@@ -825,37 +815,37 @@ class ServiceProvidersScreen extends StatelessWidget {
         iconTheme: const IconThemeData(color: Colors.black),
       ),
       body:
-      serviceProviders.isEmpty
-          ? const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.location_off, size: 50, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
-              'No nearby providers found',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+          serviceProviders.isEmpty
+              ? const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.location_off, size: 50, color: Colors.grey),
+                    SizedBox(height: 16),
+                    Text(
+                      'No nearby providers found',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Try again later or search in a different location',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              )
+              : ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: serviceProviders.length,
+                itemBuilder: (context, index) {
+                  final provider = serviceProviders[index];
+                  return ServiceProviderCard(provider: provider);
+                },
               ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Try again later or search in a different location',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-          ],
-        ),
-      )
-          : ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: serviceProviders.length,
-        itemBuilder: (context, index) {
-          final provider = serviceProviders[index];
-          return ServiceProviderCard(provider: provider);
-        },
-      ),
     );
   }
 }
@@ -895,17 +885,20 @@ class ServiceProviderCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child:
-                provider.relatedWorkImage.isNotEmpty
-                    ? ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.memory(
-                    base64Decode(provider.relatedWorkImage),
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                    const Icon(Icons.image_not_supported, size: 40),
-                  ),
-                )
-                    : const Icon(Icons.work, size: 40, color: Colors.grey),
+                    provider.relatedWorkImage.isNotEmpty
+                        ? ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.memory(
+                            base64Decode(provider.relatedWorkImage),
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (context, error, stackTrace) => const Icon(
+                                  Icons.image_not_supported,
+                                  size: 40,
+                                ),
+                          ),
+                        )
+                        : const Icon(Icons.work, size: 40, color: Colors.grey),
               ),
               const SizedBox(width: 16),
 
@@ -928,7 +921,7 @@ class ServiceProviderCard extends StatelessWidget {
                           rating: provider.averageRating,
                           itemBuilder:
                               (context, index) =>
-                          const Icon(Icons.star, color: Colors.amber),
+                                  const Icon(Icons.star, color: Colors.amber),
                           itemCount: 5,
                           itemSize: 16,
                           direction: Axis.horizontal,
@@ -939,7 +932,10 @@ class ServiceProviderCard extends StatelessWidget {
                         ),
                         Text(
                           ' (${provider.ratingCount})',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
                         ),
                       ],
                     ),
@@ -1007,7 +1003,7 @@ class ServiceProviderCard extends StatelessWidget {
                             MaterialPageRoute(
                               builder:
                                   (context) =>
-                                  BookNowScreen(provider: provider),
+                                      BookNowScreen(provider: provider),
                             ),
                           );
                         },
@@ -1082,18 +1078,19 @@ class ProviderDetailScreen extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   child:
-                  provider.profileImage != null &&
-                      provider.profileImage!.isNotEmpty
-                      ? ClipRRect(
-                    borderRadius: BorderRadius.circular(60),
-                    child: Image.memory(
-                      base64Decode(provider.profileImage!),
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                      const Icon(Icons.person, size: 40),
-                    ),
-                  )
-                      : const Icon(Icons.person, size: 40),
+                      provider.profileImage != null &&
+                              provider.profileImage!.isNotEmpty
+                          ? ClipRRect(
+                            borderRadius: BorderRadius.circular(60),
+                            child: Image.memory(
+                              base64Decode(provider.profileImage!),
+                              fit: BoxFit.cover,
+                              errorBuilder:
+                                  (context, error, stackTrace) =>
+                                      const Icon(Icons.person, size: 40),
+                            ),
+                          )
+                          : const Icon(Icons.person, size: 40),
                 ),
                 const SizedBox(width: 20),
 
@@ -1105,17 +1102,23 @@ class ProviderDetailScreen extends StatelessWidget {
                       color: Colors.grey[200],
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: provider.relatedWorkImage.isNotEmpty
-                        ? ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.memory(
-                        base64Decode(provider.relatedWorkImage),
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.work, size: 40),
-                      ),
-                    )
-                        : const Icon(Icons.work, size: 40, color: Colors.grey),
+                    child:
+                        provider.relatedWorkImage.isNotEmpty
+                            ? ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.memory(
+                                base64Decode(provider.relatedWorkImage),
+                                fit: BoxFit.cover,
+                                errorBuilder:
+                                    (context, error, stackTrace) =>
+                                        const Icon(Icons.work, size: 40),
+                              ),
+                            )
+                            : const Icon(
+                              Icons.work,
+                              size: 40,
+                              color: Colors.grey,
+                            ),
                   ),
                 ),
               ],
@@ -1128,8 +1131,9 @@ class ProviderDetailScreen extends StatelessWidget {
               children: [
                 RatingBarIndicator(
                   rating: provider.averageRating,
-                  itemBuilder: (context, index) =>
-                  const Icon(Icons.star, color: Colors.amber),
+                  itemBuilder:
+                      (context, index) =>
+                          const Icon(Icons.star, color: Colors.amber),
                   itemCount: 5,
                   itemSize: 20,
                   direction: Axis.horizontal,
@@ -1137,7 +1141,10 @@ class ProviderDetailScreen extends StatelessWidget {
                 const SizedBox(width: 10),
                 Text(
                   '${provider.averageRating.toStringAsFixed(1)} (${provider.ratingCount} reviews)',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -1147,8 +1154,12 @@ class ProviderDetailScreen extends StatelessWidget {
             // Service Info
             _buildDetailRow('Service', provider.serviceName),
             _buildDetailRow('Experience', '${provider.experience} years'),
-            _buildDetailRow('Pricing', '${provider.priceType} - Rs.${provider.hourlyRate}/hr'),
-            if (provider.priceDescription != null && provider.priceDescription!.isNotEmpty)
+            _buildDetailRow(
+              'Pricing',
+              '${provider.priceType} - Rs.${provider.hourlyRate}/hr',
+            ),
+            if (provider.priceDescription != null &&
+                provider.priceDescription!.isNotEmpty)
               _buildDetailRow('Price Details', provider.priceDescription!),
             _buildDetailRow('Phone', provider.phone),
             _buildDetailRow('Address', provider.location.address),
@@ -1205,15 +1216,16 @@ class ProviderDetailScreen extends StatelessWidget {
     );
   }
 }
+
 Future<String?> getProviderToken(String providerId) async {
   try {
     final snapshot =
-    await FirebaseDatabase.instance
-        .ref()
-        .child("providers")
-        .child(providerId)
-        .child("token")
-        .get();
+        await FirebaseDatabase.instance
+            .ref()
+            .child("providers")
+            .child(providerId)
+            .child("token")
+            .get();
 
     if (snapshot.exists) {
       return snapshot.value as String;
@@ -1267,7 +1279,6 @@ class _BookNowScreenState extends State<BookNowScreen> {
     }
   }
 
-
   Future<void> _submitBooking() async {
     if (_formKey.currentState!.validate() &&
         _selectedDate != null &&
@@ -1284,10 +1295,10 @@ class _BookNowScreenState extends State<BookNowScreen> {
 
       final userId = FirebaseAuth.instance.currentUser!.uid;
       final userLocation =
-      Provider.of<ServiceDataProvider>(
-        context,
-        listen: false,
-      ).userLocation!;
+          Provider.of<ServiceDataProvider>(
+            context,
+            listen: false,
+          ).userLocation!;
 
       // Create appointment data with isConfirmed: false
       final appointment = {
@@ -1308,7 +1319,7 @@ class _BookNowScreenState extends State<BookNowScreen> {
       try {
         // Save to Firebase
         final ref =
-        FirebaseDatabase.instance.ref().child('appointments').push();
+            FirebaseDatabase.instance.ref().child('appointments').push();
         final appointmentId = ref.key!;
 
         await ref.set({...appointment, 'appointmentId': appointmentId});
@@ -1319,8 +1330,7 @@ class _BookNowScreenState extends State<BookNowScreen> {
           await SendNotificationService.sendNotificationUsingApi(
             token: providerToken,
             title: "New Booking Request",
-            body:
-            "You have a new booking request",
+            body: "You have a new booking request",
             data: {
               "click_action": "FLUTTER_NOTIFICATION_CLICK",
               "appointmentId": appointmentId,
@@ -1351,9 +1361,7 @@ class _BookNowScreenState extends State<BookNowScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text("Book Appointment"),
-      ),
+      appBar: AppBar(title: const Text("Book Appointment")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -1396,7 +1404,7 @@ class _BookNowScreenState extends State<BookNowScreen> {
                 ),
                 validator:
                     (value) =>
-                value!.isEmpty ? "Please describe the problem" : null,
+                        value!.isEmpty ? "Please describe the problem" : null,
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -1417,7 +1425,14 @@ class _BookNowScreenState extends State<BookNowScreen> {
   }
 }
 
-// User Home Screen
+
+
+
+
+
+
+// .........................User Home Screen
+
 class UserHomeScreen extends StatefulWidget {
   const UserHomeScreen({super.key});
 
@@ -1427,9 +1442,9 @@ class UserHomeScreen extends StatefulWidget {
 
 class _UserHomeScreenState extends State<UserHomeScreen> {
   final List<String> carouselImages = const [
-    'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
-    'https://images.unsplash.com/photo-1540518614846-7eded433c457?ixlib=rb-4.0.3&auto=format&fit=crop&w=1457&q=80',
-    'https://images.unsplash.com/photo-1484154218962-a197022b5858?ixlib=rb-4.0.3&auto=format&fit=crop&w=1474&q=80',
+    'assets/images/banner1.png',
+    'assets/images/banner2.png',
+    'assets/images/banner3.png',
   ];
 
   TextEditingController _searchController = TextEditingController();
@@ -1481,6 +1496,17 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     }
   }
 
+  Future<void> _refreshData() async {
+    // Reload providers
+    await _serviceProvider!.loadProviders();
+
+
+    // Update filtered services
+    setState(() {
+      _filteredServices = _serviceProvider!.searchServices(_searchController.text);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final screens = [
@@ -1491,7 +1517,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     ];
 
     return Scaffold(
-      appBar: _currentIndex == 0
+      appBar:
+      _currentIndex == 0
           ? AppBar(
         backgroundColor: Colors.orange[400],
         title: const Text(
@@ -1505,7 +1532,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications, color: Colors.white),
-            onPressed: () => Navigator.push(
+            onPressed:
+                () => Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (_) => const UserNotificationsScreen(),
@@ -1515,16 +1543,13 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         ],
       )
           : null,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: screens),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
         selectedItemColor: Colors.deepOrange,
-        backgroundColor: Colors.orange[400],
-        unselectedItemColor: Colors.white,
+        backgroundColor: Colors.white,
+        unselectedItemColor: Colors.grey,
         onTap: (index) {
           setState(() {
             _currentIndex = index;
@@ -1532,8 +1557,11 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.search),label: 'search'),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Cart'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'search'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Cart',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
@@ -1544,172 +1572,192 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.orange[400]!, Colors.orange[300]!],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFFFFA726), // Orange 400
+            Color(0xFFFFB74D), // Orange 300
+            Colors.white,
+            Colors.white,
+          ],
+          stops: [0.0, 0.8, 1.1, 1.0], // Fixed the gradient stops
         ),
       ),
       child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 80),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildGreetingCard(),
-              const SizedBox(height: 10),
+        child: RefreshIndicator(
+          onRefresh: _refreshData,
+          color: Colors.orange,
+          backgroundColor: Colors.white,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 80),
+            physics: const AlwaysScrollableScrollPhysics(), // Required for RefreshIndicator
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildGreetingCard(),
 
-              // Carousel
-              CarouselSlider(
-                options: CarouselOptions(
-                  height: 180,
-                  autoPlay: true,
-                  viewportFraction: 0.8,
-                  enlargeCenterPage: true,
-                ),
-                items: carouselImages.map((url) {
-                  return Container(
-                    margin: const EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        url,
-                        fit: BoxFit.cover,
-                        width: 1000,
-                        errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.error, size: 50),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 20),
-
-              // Services header + search
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Services',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Container(
-                      width: 200,
-                      height: 40,
+                // Carousel
+                CarouselSlider(
+                  options: CarouselOptions(
+                    height: 180,
+                    autoPlay: true,
+                    viewportFraction: 0.8,
+                    enlargeCenterPage: true,
+                  ),
+                  items:
+                  carouselImages.map((url) {
+                    return Container(
+                      margin: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.3),
-                            blurRadius: 6,
-                            offset: const Offset(0, 3),
+                            color: Colors.grey.withOpacity(0.5),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
-                      child: TextField(
-                        controller: _searchController,
-                        style: const TextStyle(color: Colors.black87),
-                        decoration: const InputDecoration(
-                          hintText: 'Search...',
-                          hintStyle: TextStyle(fontSize: 14),
-                          prefixIcon: Icon(
-                            Icons.search,
-                            color: Colors.grey,
-                            size: 20,
-                          ),
-                          border: InputBorder.none,
-                          contentPadding:
-                          EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                          isDense: true,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.asset(
+                          url,
+                          fit: BoxFit.cover,
+                          width: 1000,
+                          errorBuilder:
+                              (context, error, stackTrace) =>
+                          const Icon(Icons.error, size: 50),
                         ),
-                        onChanged: (value) {
-                          setState(() {
-                            _filteredServices =
-                                _serviceProvider?.searchServices(value) ?? [];
-                          });
-                        },
                       ),
-                    ),
-                  ],
+                    );
+                  }).toList(),
                 ),
-              ),
+                const SizedBox(height: 10),
 
-              const SizedBox(height: 10),
-
-              // Services Grid
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: GridView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: _filteredServices.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    childAspectRatio: 0.8,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                  ),
-                  itemBuilder: (context, index) {
-                    return ServiceCard(service: _filteredServices[index]);
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Provider Services Section - Updated to use 20km range
-              Consumer<ServiceDataProvider>(
-                builder: (context, serviceProvider, child) {
-                  final servicesWithin20Km = serviceProvider.getAllServicesWithin20Km();
-
-                  if (servicesWithin20Km.isEmpty) {
-                    return const SizedBox(); // Return empty if no services
-                  }
-
-                  return Column(
+                // Services header + search
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Text(
-                          'Available Services Near You',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                      const Text(
+                        'Services',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Column(
-                          children: servicesWithin20Km
-                              .map((service) => _buildProviderServiceCard(service))
-                              .toList(),
+                      Container(
+                        width: 200,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.3),
+                              blurRadius: 6,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          style: const TextStyle(color: Colors.black87),
+                          decoration: const InputDecoration(
+                            hintText: 'Search...',
+                            hintStyle: TextStyle(fontSize: 14),
+                            prefixIcon: Icon(
+                              Icons.search,
+                              color: Colors.grey,
+                              size: 20,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 12,
+                            ),
+                            isDense: true,
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              _filteredServices =
+                                  _serviceProvider?.searchServices(value) ?? [];
+                            });
+                          },
                         ),
                       ),
                     ],
-                  );
-                },
-              ),
-              const SizedBox(height: 20),
-            ],
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                // Services Grid
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: GridView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemCount: _filteredServices.length,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      childAspectRatio: 0.8,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                    ),
+                    itemBuilder: (context, index) {
+                      return ServiceCard(service: _filteredServices[index]);
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Provider Services Section - Updated to use 20km range
+                Consumer<ServiceDataProvider>(
+                  builder: (context, serviceProvider, child) {
+                    final servicesWithin20Km =
+                    serviceProvider.getAllServicesWithin20Km();
+
+                    if (servicesWithin20Km.isEmpty) {
+                      return const SizedBox(); // Return empty if no services
+                    }
+
+                    return Column(
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Text(
+                            'Available Services Near You',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Column(
+                            children:
+                            servicesWithin20Km
+                                .map(
+                                  (service) =>
+                                  _buildProviderServiceCard(service),
+                            )
+                                .toList(),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),
@@ -1717,7 +1765,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   }
 
   Widget _buildSearchScreen() {
-    return Container ();
+    return Container();
   }
 
   Widget _buildProviderServiceCard(ProviderServiceCard service) {
@@ -1734,13 +1782,15 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             color: Colors.grey[200],
             borderRadius: BorderRadius.circular(8),
           ),
-          child: service.imageBase64 != null && service.imageBase64!.isNotEmpty
+          child:
+          service.imageBase64 != null && service.imageBase64!.isNotEmpty
               ? ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Image.memory(
               base64Decode(service.imageBase64!),
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) =>
+              errorBuilder:
+                  (context, error, stackTrace) =>
               const Icon(Icons.image_not_supported, size: 30),
             ),
           )
@@ -1760,8 +1810,10 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                 const Icon(Icons.star, color: Colors.amber, size: 16),
                 const SizedBox(width: 4),
                 Text(service.rating.toStringAsFixed(1)),
-                Text(" (${service.ratingCount})",
-                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                Text(
+                  " (${service.ratingCount})",
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
               ],
             ),
           ],
@@ -1788,8 +1840,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
   Widget _buildGreetingCard() {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
@@ -1819,7 +1871,6 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 4),
                 Text(
                   userName != null ? "Welcomes, $userName 👋" : "Loading...",
                   style: const TextStyle(
@@ -1828,7 +1879,6 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 8),
                 const Text(
                   'What service do you need today?',
                   style: TextStyle(fontSize: 14, color: Colors.white),
@@ -1841,6 +1891,22 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     );
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class ServiceCard extends StatelessWidget {
   final Service service;
@@ -1859,13 +1925,15 @@ class ServiceCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           onTap: () async {
             final location =
-                Provider.of<ServiceDataProvider>(context, listen: false)
-                    .userLocation;
+                Provider.of<ServiceDataProvider>(
+                  context,
+                  listen: false,
+                ).userLocation;
 
             if (location == null) {
-              final newLocation = await Navigator.pushNamed(
-                  context, LocationScreen.routeName)
-              as LocationModel?;
+              final newLocation =
+                  await Navigator.pushNamed(context, LocationScreen.routeName)
+                      as LocationModel?;
 
               if (newLocation != null) {
                 Navigator.pushNamed(
@@ -1887,13 +1955,14 @@ class ServiceCard extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.network(
-                  service.imageUrl,
+                Image.asset(
+                  service.imageAssets,
                   height: 40,
                   width: 40,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                  const Icon(Icons.error_outline, size: 40),
+                  errorBuilder:
+                      (context, error, stackTrace) =>
+                          const Icon(Icons.error_outline, size: 40),
                 ),
                 const SizedBox(height: 6),
                 Text(
