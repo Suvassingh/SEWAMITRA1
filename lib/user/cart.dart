@@ -271,17 +271,17 @@ class _BookingsScreenState extends State<BookingsScreen> {
     );
   }
 
-  void goToMap(double lat, double lng) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ProviderLocationMap(
-          latitude: lat,
-          longitude: lng,
-        ),
-      ),
-    );
-  }
+  // void goToMap(double lat, double lng) {
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (_) => ProviderLocationMap(
+  //         latitude: lat,
+  //         longitude: lng,
+  //       ),
+  //     ),
+  //   );
+  // }
 
   String _formatDateTime(int timestamp) {
     if (timestamp == 0) return 'No date';
@@ -425,29 +425,29 @@ class _BookingsScreenState extends State<BookingsScreen> {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            GestureDetector(
-                              onTap: () => goToMap(
-                                booking['providerLat'],
-                                booking['providerLng'],
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.location_on,
-                                      size: 16, color: Colors.blue),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    booking['distance'] > 0
-                                        ? "${booking['distance'].toStringAsFixed(2)} km away"
-                                        : "Distance unavailable",
-                                    style: const TextStyle(
-                                      color: Colors.blue,
-                                      decoration:
-                                      TextDecoration.underline,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                            // GestureDetector(
+                            //   onTap: () => goToMap(
+                            //     booking['providerLat'],
+                            //     booking['providerLng'],
+                            //   ),
+                            //   child: Row(
+                            //     children: [
+                            //       const Icon(Icons.location_on,
+                            //           size: 16, color: Colors.blue),
+                            //       const SizedBox(width: 4),
+                            //       Text(
+                            //         booking['distance'] > 0
+                            //             ? "${booking['distance'].toStringAsFixed(2)} km away"
+                            //             : "Distance unavailable",
+                            //         style: const TextStyle(
+                            //           color: Colors.blue,
+                            //           decoration:
+                            //           TextDecoration.underline,
+                            //         ),
+                            //       ),
+                            //     ],
+                            //   ),
+                            // ),
                           ],
                         ),
                       ),
@@ -490,51 +490,51 @@ class _BookingsScreenState extends State<BookingsScreen> {
   }
 }
 
-class ProviderLocationMap extends StatelessWidget {
-  final double latitude;
-  final double longitude;
-
-  const ProviderLocationMap({
-    super.key,
-    required this.latitude,
-    required this.longitude,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final LatLng providerLatLng = LatLng(latitude, longitude);
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Provider Location')),
-      body: FlutterMap(
-        options: MapOptions(
-          initialCenter: providerLatLng,
-          initialZoom: 15.0,
-        ),
-        children: [
-          TileLayer(
-            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-            userAgentPackageName: 'com.example.app',
-          ),
-          MarkerLayer(
-            markers: [
-              Marker(
-                point: providerLatLng,
-                width: 40,
-                height: 40,
-                child: const Icon(
-                  Icons.location_pin,
-                  color: Colors.red,
-                  size: 40,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
+// class ProviderLocationMap extends StatelessWidget {
+//   final double latitude;
+//   final double longitude;
+//
+//   const ProviderLocationMap({
+//     super.key,
+//     required this.latitude,
+//     required this.longitude,
+//   });
+//
+//   // @override
+//   // Widget build(BuildContext context) {
+//   //   final LatLng providerLatLng = LatLng(latitude, longitude);
+//   //
+//   //   return Scaffold(
+//   //     appBar: AppBar(title: const Text('Provider Location')),
+//   //     body: FlutterMap(
+//   //       options: MapOptions(
+//   //         initialCenter: providerLatLng,
+//   //         initialZoom: 15.0,
+//   //       ),
+//   //       children: [
+//   //         TileLayer(
+//   //           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+//   //           userAgentPackageName: 'com.example.app',
+//   //         ),
+//   //         MarkerLayer(
+//   //           markers: [
+//   //             Marker(
+//   //               point: providerLatLng,
+//   //               width: 40,
+//   //               height: 40,
+//   //               child: const Icon(
+//   //                 Icons.location_pin,
+//   //                 color: Colors.red,
+//   //                 size: 40,
+//   //               ),
+//   //             ),
+//   //           ],
+//   //         ),
+//   //       ],
+//   //     ),
+//   //   );
+//   // }
+// }
 
 class RatingScreen extends StatefulWidget {
   final String appointmentId;

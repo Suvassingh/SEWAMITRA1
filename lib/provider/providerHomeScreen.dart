@@ -127,7 +127,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: Colors.orange[400],
+      backgroundColor: Colors.white,
       appBar:
           _currentIndex == 0
               ? AppBar(
@@ -540,23 +540,23 @@ class _ServiceRegistrationScreenState extends State<ServiceRegistrationScreen> {
   }
 
   /// Select location from map
-  Future<void> _openMapSelector() async {
-    final selectedLocation = await Navigator.push<LatLng>(
-      context,
-      MaterialPageRoute(
-        builder:
-            (context) => MapSelectionScreen(initialLocation: _selectedLocation),
-      ),
-    );
-
-    if (selectedLocation != null) {
-      setState(() => _selectedLocation = selectedLocation);
-      await _reverseGeocode(
-        selectedLocation.latitude,
-        selectedLocation.longitude,
-      );
-    }
-  }
+  // Future<void> _openMapSelector() async {
+  //   final selectedLocation = await Navigator.push<LatLng>(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder:
+  //           (context) => MapSelectionScreen(initialLocation: _selectedLocation),
+  //     ),
+  //   );
+  //
+  //   if (selectedLocation != null) {
+  //     setState(() => _selectedLocation = selectedLocation);
+  //     await _reverseGeocode(
+  //       selectedLocation.latitude,
+  //       selectedLocation.longitude,
+  //     );
+  //   }
+  // }
 
   /// Reverse geocode
   Future<void> _reverseGeocode(double latitude, double longitude) async {
